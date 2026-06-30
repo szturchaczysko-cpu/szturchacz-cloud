@@ -24,11 +24,18 @@ Operatorzy = TYLKO telefony, reklamacje, „czy szturchać", nie-automaty.
 - **Wysyłka (nas→brama):** `POST /api/v1/messages/send` (channel, recipient, body). Owner: Artur.
 - **Kurier:** automat emituje awizację do Firestore `awizacje_kurier` (kontrakt z apką Eweliny —
   `kontrakt_awizacje_kurier.md`, dziś u koordynatora; DO WRZUCENIA do repo). Faza 1: UPS skrzynia, shadow.
-- **Propozycja automatu ↔ bramka operatora:** ⬜ DO USTALENIA — gdzie automat zapisuje propozycje
-  („chcę wysłać X", „chcę zamówić kuriera"), jaki schemat, jak bramka czyta/akceptuje(zielony)/
-  odrzuca(czerwony). **Uzgodnić TU zanim ktokolwiek zacznie kodować którąś stronę.**
-- **Odrzuty (czerwone):** panel + komentarz wdrażającego → „wyślij jednak" / „do poprawy"
-  (patch na żywym przypadku). Schemat rekordu odrzutu ⬜ DO USTALENIA.
+- **Propozycja automatu ↔ bramka operatora — KONTRAKT (dwustronny, do domknięcia):**
+  Automat zapisuje propozycję akcji do Firestore `propozycje` (`status="do_akceptacji"`); bramka czyta,
+  pokazuje, ustawia decyzję; automat NIE wykonuje przed `zielony` (człowiek w pętli).
+  - STRONA AUTOMATU (Artur, draft v0): dok `{id, created_at, status, test_mode,
+    sprawa{nrZam,dokId,pz,grupa,kanal_zrodlo}, typ:"wiadomosc"|"kurier",
+    akcja{kanal,recipient,tresc | awizacja{…CreateZwrotka…}}, kontekst{rolka_skrot,fakty},
+    uzasadnienie, decyzja:null, komentarz:null, decydent:null, decyzja_at:null}`.
+    Otwarte: kto wykonuje po `zielony` (automat poll vs worker), idempotencja, podtypy „czerwony"
+    („do poprawy" vs „wyślij jednak").
+  - STRONA BRAMKI (Sylwia): ⬜ TODO — jakich pól potrzebuje do renderu zielony/czerwony + panel
+    odrzutów + komentarz.
+  - UZGODNIONE: ⬜ (puste; domykamy po OBU PR). **Dopóki nie domknięte — nikt nie koduje swojej strony.**
 
 ## DECYZJE (log — dopisuj nowe na górze)
 - 2026-06-30: Kierunek = AUTOMAT (skrzynia IN-OUT), nie ręczny operator. Faza 1 = bramka
@@ -67,8 +74,7 @@ PĘTLA:
 KONTRAKTY: styk dwóch pasów → doc w repo, każdy wypełnia SWOJĄ stronę przez PR, „UZGODNIONE" dopiero
 po obu zatwierdzeniach. Dopóki nie uzgodnione — nikt nie koduje swojej strony.
 
-## WSKAŹNIKI (pliki w tym repo)
-- `BRIEF_SYLWIA.md` — cel automatu + tryb pracy + guardraile (start sesji Sylwii).
-- `KONTRAKT_propozycje.md` — styk „propozycja automatu ↔ bramka operatora" (dwustronny, do domknięcia).
+## WSKAŹNIKI
 - `CLAUDE.md` — stos, struktura, bezpieczniki.
 - Referencja streamlitowa (READ-ONLY): repo `szturchacz-test` (prompt v1_11), `wiezowiec-test`.
+- Brief startowy sesji = wklejany prompt (NIE plik w repo).
