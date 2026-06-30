@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Szturchacz — operator{% endblock %}
+{% block body %}
+<div class="topbar">
+  <div class="topbar__brand">💬 Szturchacz</div>
+  <div class="topbar__right">
+    <span class="badge badge--muted" id="op-label">{{ operator.label or "" }}</span>
+    <span class="badge badge--muted" id="op-grupa">—</span>
+    <span class="badge" id="op-spraw" title="Zakończone dziś">0 spraw</span>
+    <span class="badge" id="op-diamenty" title="Diamenty dziś">💎 0</span>
+    <a class="btn btn--ghost btn--small" href="/koordynator">Koordynator</a>
+  </div>
+</div>
+
+<main class="op-grid">
+  <!-- Lewa kolumna: karta aktualnej sprawy -->
+  <section class="card op-case" id="case-card">
+    <div class="empty" id="case-empty">Brak aktywnej sprawy.</div>
+    <div id="case-body" hidden>
+      <h2 class="card__title">Sprawa <span id="case-nr">—</span></h2>
+      <p class="card__hint" id="case-meta">—</p>
+      <div class="op-badges">
+        <span class="badge" id="case-pz">PZ?</span>
+        <span class="badge badge--muted" id="case-score">score —</span>
+        <span class="badge badge--muted" id="case-grupa">—</span>
+      </div>
+      <div class="op-actions">
+        <button class="btn btn--primary" id="btn-complete">Zakończ i weź następną</button>
+        <button class="btn btn--danger" id="btn-skip">Pomiń</button>
+      </div>
+      <p class="message" id="case-msg"></p>
+    </div>
+    <button class="btn btn--primary op-next" id="btn-next">Pobierz sprawę</button>
+  </section>
+
+  <!-- Prawa kolumna: rozmowa z AI -->
+  <section class="op-chat">
+    <div class="op-step card" id="step-card" hidden>
+      <div class="op-step__label">Krok teraz</div>
+      <div id="step-text">—</div>
+    </div>
+    <div class="op-draft card" id="draft-card" hidden>
+      <div class="op-draft__head">
+        <span>Draft do klienta</span>
+        <button class="btn btn--small" id="btn-copy">Kopiuj</button>
+      </div>
+      <pre id="draft-text" class="codeblock"></pre>
+    </div>
+    <div class="op-messages" id="messages"></div>
+    <div class="op-compose">
+      <input class="text-input" id="chat-input" placeholder="Napisz do asystenta… (np. wynik forum, odpowiedź klienta)" autocomplete="off">
+      <button class="btn btn--primary" id="btn-send">Wyślij</button>
+    </div>
+  </section>
+</main>
+{% endblock %}
+{% block scripts %}<script src="/static/operator.js"></script>{% endblock %}

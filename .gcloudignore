@@ -1,0 +1,22 @@
+# Co NIE ma trafiać do Cloud Build (kontekst budowania).
+# Cloud Build używa TEGO pliku zamiast .dockerignore — bez niego sekrety/.venv poleciałyby do builda.
+.git/
+.gitignore
+.gcloudignore
+
+# Sekrety i stan lokalny — NIGDY do chmury.
+.env
+.env.*
+!.env.example
+data/
+
+# Środowisko i śmieci lokalne.
+.venv/
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+.claude/
+
+# Dokumentacja niepotrzebna w obrazie.
+*.md

@@ -1,0 +1,11 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+jinja2==3.1.4
+itsdangerous==2.2.0
+python-dotenv==1.0.1
+requests==2.32.3
+google-cloud-firestore>=2.16,<3
+PyJWT[crypto]==2.10.1
+# AI (Vertex/Gemini) — ładowany leniwie w app/wspolne/ai.py.
+# W prod realny dostawca; lokalnie bez creds apka i tak schodzi na zaślepkę AI.
+google-cloud-aiplatform>=1.71,<2

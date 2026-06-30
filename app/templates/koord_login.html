@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Szturchacz — koordynator{% endblock %}
+{% block body %}
+<div class="screen-center">
+  <div class="card card--narrow">
+    <h1 class="card__title">Panel koordynatora</h1>
+    <p class="card__hint">Docelowo wejście przez bramę Pulpitu (rola koordynator). Lokalnie — hasło.</p>
+    <input class="text-input" id="koord-pass" type="password" placeholder="Hasło koordynatora" autocomplete="current-password">
+    <button class="btn btn--primary" id="btn-koord-login" style="width:100%">Wejdź</button>
+    <p class="message" id="koord-login-msg"></p>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/koord_login.js"></script>{% endblock %}

@@ -1,0 +1,60 @@
+/* Specyficzne dla Szturchacza — NA TOKENACH motywu (theme.css). Bez kolorów na sztywno,
+   bez jaskrawych wypełnień: monochrom + jeden delikatny akcent (tint/obwódka). */
+
+.topbar__right { display: flex; align-items: center; gap: var(--space-2); }
+
+/* Ekran operatora: dwie kolumny (karta sprawy | rozmowa) */
+.op-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  align-items: start;
+}
+@media (max-width: 760px) { .op-grid { grid-template-columns: 1fr; } }
+
+.op-case .op-badges { display: flex; gap: var(--space-2); margin: var(--space-3) 0; flex-wrap: wrap; }
+.op-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-3); }
+.op-next { width: 100%; margin-top: var(--space-3); }
+
+.op-chat { display: flex; flex-direction: column; gap: var(--space-3); min-height: 60vh; }
+
+/* Wyróżniony krok „tu i teraz" — cienka akcentowa krawędź, bez wypełnienia */
+.op-step { border-left: 3px solid var(--accent-dim); }
+.op-step__label {
+  font-size: var(--fs-sm); color: var(--accent-soft); text-transform: uppercase;
+  letter-spacing: .04em; margin-bottom: var(--space-1);
+}
+
+/* Draft do klienta — nagłówek; sama treść w <pre class="codeblock"> z motywu */
+.op-draft__head {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-2);
+  color: var(--muted); font-size: var(--fs-sm);
+}
+
+/* Rozmowa — bąble na powierzchniach motywu (monochrom; własny = subtelnie jaśniejsza powierzchnia) */
+.op-messages { display: flex; flex-direction: column; gap: var(--space-2); flex: 1; }
+.bubble { padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); max-width: 90%; font-size: var(--fs-base); line-height: 1.5; }
+.bubble--user { align-self: flex-end; background: var(--card-2); border: 1px solid var(--border-2); color: var(--text); }
+.bubble--model { align-self: flex-start; background: var(--card); border: 1px solid var(--line); white-space: pre-wrap; }
+.bubble--warn { align-self: stretch; max-width: 100%; border: 1px solid var(--danger); color: var(--danger); background: transparent; }
+
+.op-compose { display: flex; gap: var(--space-2); }
+.op-compose .text-input { margin-bottom: 0; }
+
+/* Panel koordynatora */
+.koord-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4); padding: var(--space-4);
+  align-items: start;
+}
+@media (max-width: 760px) { .koord-grid { grid-template-columns: 1fr; } }
+.koord-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-2); }
+.koord-row .text-input { width: 120px; margin-bottom: 0; }
+.koord-op-add { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+.koord-op-add .text-input { width: auto; flex: 1; min-width: 110px; margin-bottom: 0; }
+.full-span { grid-column: 1 / -1; }
+.card--narrow { width: 360px; }
+.gotowiec { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: var(--space-2) var(--space-3); margin-bottom: var(--space-2); }
+.gotowiec summary { cursor: pointer; font-weight: 600; }
+.gotowiec .codeblock { margin-top: var(--space-2); }
+.gotowiec .meta { color: var(--muted); font-size: 12px; }

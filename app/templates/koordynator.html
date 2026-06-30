@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Szturchacz — koordynator{% endblock %}
+{% block body %}
+<div class="topbar">
+  <div class="topbar__brand">🏢 Szturchacz — koordynator</div>
+  <div class="topbar__right">
+    <span class="badge" id="kpi-diamenty">💎 0 dziś</span>
+    <span class="badge badge--muted" id="kpi-forum">forum: —</span>
+    <span class="badge badge--muted" id="kpi-autopilot">autopilot: —</span>
+    <a class="btn btn--ghost btn--small" href="/">Ekran operatora</a>
+  </div>
+</div>
+
+<main class="koord-grid">
+  <section class="card">
+    <h2 class="card__title">Kolejka spraw</h2>
+    <ul class="list" id="counts"></ul>
+  </section>
+
+  <section class="card">
+    <h2 class="card__title">Wsad → sprawy</h2>
+    <p class="card__hint">Wklej listę zamówień (po linii). Numer i grupa rozpoznawane automatycznie.</p>
+    <textarea class="text-input" id="wsad" rows="6" placeholder="NrZam: 374593 | Germany | ..."></textarea>
+    <button class="btn btn--primary" id="btn-ingest">Załaduj wsad</button>
+    <p class="message" id="ingest-msg"></p>
+  </section>
+
+  <section class="card">
+    <h2 class="card__title">Konfiguracja</h2>
+    <label class="koord-row"><span>Autopilot — % spraw na noc</span>
+      <input class="text-input" id="cfg-percent" type="number" min="0" max="100"></label>
+    <label class="koord-row"><span>Woreczek — powrót po (godz.)</span>
+      <input class="text-input" id="cfg-retry" type="number" min="1" max="24"></label>
+    <button class="btn" id="btn-save-config">Zapisz konfigurację</button>
+    <p class="message" id="config-msg"></p>
+  </section>
+
+  <section class="card">
+    <h2 class="card__title">Operatorzy</h2>
+    <ul class="list" id="operators"></ul>
+    <div class="koord-op-add">
+      <input class="text-input" id="op-pid" placeholder="pid (np. emilia)">
+      <input class="text-input" id="op-label" placeholder="Imię">
+      <input class="text-input" id="op-grupa" placeholder="DE / FR / UKPL">
+      <input class="text-input" id="op-nick" placeholder="login na forum">
+      <button class="btn" id="btn-add-op">Dodaj / zapisz</button>
+    </div>
+    <p class="message" id="op-msg"></p>
+  </section>
+
+  <section class="card">
+    <h2 class="card__title">Prompt sterujący AI</h2>
+    <p class="card__hint">Wybierz prompt z repo albo wpisz własny adres URL. Pusty = domyślny z konfiguracji.</p>
+    <select class="text-input" id="prompt-list"><option value="">— wybierz z repo —</option></select>
+    <input class="text-input" id="prompt-url" placeholder="https://… adres promptu (.txt)">
+    <button class="btn" id="btn-save-prompt">Ustaw prompt</button>
+    <p class="card__hint">Aktualny: <span id="prompt-current">—</span></p>
+    <p class="message" id="prompt-msg"></p>
+  </section>
+
+  <section class="card">
+    <h2 class="card__title">Autopilot nocny</h2>
+    <p class="card__hint">Pełna automatyka. Tryb forum „sucho" = nic nie idzie na forum (test). Globalny stop w env.</p>
+    <button class="btn btn--primary" id="btn-run-autopilot">Uruchom teraz (ręcznie)</button>
+    <pre id="autopilot-out" class="codeblock" hidden></pre>
+  </section>
+
+  <section class="card full-span">
+    <h2 class="card__title">Nocne „gotowce" — podgląd jakości AI</h2>
+    <p class="card__hint">Sprawy przeliczone przez autopilota. Rozwiń, by przeczytać, co AI proponuje (w trybie „sucho" nic nie poszło na forum).</p>
+    <button class="btn btn--small" id="btn-reload-gotowce">Odśwież</button>
+    <div id="gotowce"></div>
+  </section>
+</main>
+{% endblock %}
+{% block scripts %}<script src="/static/koordynator.js"></script>{% endblock %}
