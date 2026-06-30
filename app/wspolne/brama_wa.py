@@ -60,7 +60,10 @@ def _to_epoch(v: Any) -> int:
 
 
 def parsuj_wa(raw: Any) -> dict:
-    """Best-effort normalizacja. Nigdy nie rzuca. `raw` może być dict/list/str/None."""
+    """Best-effort normalizacja. Nigdy nie rzuca. `raw` może być dict/list/str/None.
+    Realny kształt pusha bramy ATA: {channel, type, data:{body, sender, recipient}}."""
+    # KANAŁ — z top-levelu pusha (whatsapp/email/eBay); treść/nadawca siedzą w `data`.
+    channel = str(raw.get("channel") or "").strip().lower() if isinstance(raw, dict) else ""
     src = raw
     if isinstance(raw, list) and raw:
         src = raw[0] if isinstance(raw[0], dict) else {"text": str(raw)}
@@ -70,6 +73,7 @@ def parsuj_wa(raw: Any) -> dict:
     text = _szukaj(src, _KLUCZE["text"])
     ts_raw = _szukaj(src, _KLUCZE["ts"])
     return {
+        "channel": channel,
         "sender": str(sender)[:64] if sender is not None else "",
         "recipient": str(_szukaj(src, _KLUCZE["recipient"]) or "")[:64],
         "text": (str(text)[:4000] if text is not None else ""),
