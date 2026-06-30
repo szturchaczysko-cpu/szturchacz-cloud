@@ -52,7 +52,23 @@ Operatorzy = TYLKO telefony, reklamacje, „czy szturchać", nie-automaty.
 - Brama DEV/PROD: WhatsApp leci przez DEV, mail przez PROD — konsolidacja (czeka na Magdę/Krzyśka).
 - eBay OAuth — zablokowany (zły `state` w linkach Krzyśka → token pod śmieciowym kluczem; do poprawy).
 
-## WSKAŹNIKI
-- `szturchacz/CLAUDE.md` — stos, struktura, bezpieczniki.
-- Brief Sylwii (cel + tryb pracy) — w czacie / patcher.
-- Referencja streamlitowa: repo `szturchacz-test` (prompt v1_11), `wiezowiec-test` (READ-ONLY).
+## REGULAMIN WSPÓŁPRACY (dwie sesje, zero patchera Pulpitu — wszystko na Gicie)
+ROLE:
+- **Koordynator = Artur.** Scala PR do `main`, ustala kolejność, **deployuje (TYLKO z `main`)**. „Kto akceptuje".
+- **Dominujący** = kto w DANYM temacie ma priorytet (jego patch wchodzi pierwszy). Rola ZMIENNA,
+  wyznacza ją koordynator (wpisem tutaj). NIE to samo co koordynator.
+PĘTLA:
+1. Każdy pracuje na GAŁĘZI (nie `main`), **pushuje CZĘSTO** → druga strona widzi Twój stan (Twój branch).
+2. Zmiany (kod ORAZ kontrakty/briefy) → **PR**. Druga strona zatwierdza review = obustronne potwierdzenie.
+3. Koordynator scala PR do `main` w kolejności (dominujący pierwszy).
+4. Poboczny po scaleniu dominującego → skill **`przeszczep-patch`** (nakłada swój branch na nowy `main`,
+   łapie konflikty LOGICZNE, pokazuje do akceptacji) → jego PR.
+5. **Deploy WYŁĄCZNIE z `main`, przez koordynatora.** Nigdy z rozjechanego lokalnego drzewa.
+KONTRAKTY: styk dwóch pasów → doc w repo, każdy wypełnia SWOJĄ stronę przez PR, „UZGODNIONE" dopiero
+po obu zatwierdzeniach. Dopóki nie uzgodnione — nikt nie koduje swojej strony.
+
+## WSKAŹNIKI (pliki w tym repo)
+- `BRIEF_SYLWIA.md` — cel automatu + tryb pracy + guardraile (start sesji Sylwii).
+- `KONTRAKT_propozycje.md` — styk „propozycja automatu ↔ bramka operatora" (dwustronny, do domknięcia).
+- `CLAUDE.md` — stos, struktura, bezpieczniki.
+- Referencja streamlitowa (READ-ONLY): repo `szturchacz-test` (prompt v1_11), `wiezowiec-test`.
