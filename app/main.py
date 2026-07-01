@@ -305,7 +305,15 @@ async def brama_wa_webhook(request: Request, token: str):
         ch = request.query_params.get("challenge") or request.query_params.get("hub.challenge")
         return Response(ch, media_type="text/plain") if ch else JSONResponse({"ok": True})
     raw = await _json(request)
-    rec = await run_in_threadpool(deps.wa_inbox.add, raw, dict(request.headers))
+    try:
+        rec = await run_in_threadpool(deps.wa_inbox.add, raw, dict(request.headers))
+    except Exception:  # noqa: BLE001 — odbiór NIGDY nie może zgubić wiadomości po cichu
+        from .wspolne import deadletter
+        zapisano = await run_in_threadpool(deadletter.zapisz, raw, dict(request.headers), "wa_inbox.add padło")
+        log.error("[brama_wa] trwały zapis padł → dead-letter=%s (surowiec zachowany)", zapisano)
+        # 200 świadomie: brama jest (prawdopodobnie) at-most-once i nie ponawia → 5xx = pewna utrata,
+        # a surowiec mamy już w dead-letter. Semantykę retry bramy potwierdza Krzysiek (pyt. 4).
+        return JSONResponse({"ok": True, "deadletter": True})
     log.info("[brama_wa] push id=%s sender=%s dł.tekstu=%d", rec.get("id"), rec.get("sender"), len(rec.get("text") or ""))
     return {"ok": True, "id": rec["id"]}
 

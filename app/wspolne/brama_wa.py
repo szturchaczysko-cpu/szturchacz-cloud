@@ -83,6 +83,21 @@ def parsuj_wa(raw: Any) -> dict:
     }
 
 
+def rekord_wyslany(channel: str, recipient: str, body: str, msg_id: str = "", sender: str = "") -> dict:
+    """Rekord wiadomości WYCHODZĄCEJ (nasza odpowiedź) — ten sam kształt pól co `parsuj_wa`,
+    `kierunek="out"`. Domyka drugą stronę dialogu w archiwum (dziś logujemy tylko przychodzące =
+    „pół rozmowy"). msg_id: id z bramy/Meta jeśli znane (do dedup); pusty gdy brak."""
+    return {
+        "channel": str(channel or "").strip().lower(),
+        "sender": str(sender)[:64],
+        "recipient": str(recipient or "")[:64],
+        "text": str(body or "")[:4000],
+        "ts": int(time.time()),
+        "msg_id": str(msg_id or "")[:128],
+        "kierunek": "out",
+    }
+
+
 if __name__ == "__main__":
     # sanity — różne kształty nie wywalają parsera
     assert parsuj_wa({"from": "+49123", "body": "Hallo", "timestamp": 1700000000})["sender"] == "+49123"
@@ -91,4 +106,8 @@ if __name__ == "__main__":
     assert parsuj_wa("surowy string")["text"] == "surowy string"
     assert parsuj_wa(None)["text"] == ""
     assert parsuj_wa({"timestamp": "1700000000000"})["ts"] == 1700000000  # ms→s
+    # sanity — rekord wychodzący ma kierunek=out i ten sam zestaw pól
+    w = rekord_wyslany("WhatsApp", "48695287327", "cześć, wysyłamy etykietę", msg_id="wamid.X")
+    assert w["kierunek"] == "out" and w["channel"] == "whatsapp" and w["msg_id"] == "wamid.X"
+    assert set(w) == {"channel", "sender", "recipient", "text", "ts", "msg_id", "kierunek"}
     print("brama_wa.py: sanity OK")
