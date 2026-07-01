@@ -34,13 +34,19 @@ MAPA (przepływ):
   wkleja rolki) ‖ **[chudy]** (z API — autonomiczne ruchy po kanałach).
 - **BESTCHUDY** = split-screen porównanie + akcept operatora → WYJŚCIA (kanały) **tylko po bezpieczniku**.
 
-PODZIAŁ (praca równoległa):
-- **ARTUR = SKRZYNKA** (hydraulika we/wy): brama WEM intake + baza/archiwum + rozrzutnik + wieżowczyk
-  + **migracja v11 1:1 na Cloud Run** + kanały I/O (mail/WA/eBay/forum) z bezpiecznikiem.
+PODZIAŁ (praca równoległa; decyzje koordynatora 2026-07-01):
+- **ARTUR = SKRZYNKA** (hydraulika we/wy): brama WEM intake + **baza/ARCHIWUM (zapis + sklejanie po
+  kliencie — w toku)** + rozrzutnik + wieżowczyk + kanały I/O (mail/WA/eBay/forum) z bezpiecznikiem.
 - **SYLWIA = BESTCHUDY** (osobny projekt w jej sesji): split-screen v11‖chudy + selektor u góry
   (STANDARD / odwrotny WA / mail / eBay / forum) + akcept PER STRONA (🔴/🟢, **BRAK 🟢🟢** — operator
   MUSI wskazać lepszą) + komentarz odrzutu + zakładka ODRZUTÓW + kalendarz (per dzień) + **ocena NA
-  KOŃCU sesji** + przyciski zgody operatora.
+  KOŃCU sesji** + przyciski zgody operatora + **KONTENER v11** (migracja prompt v1_11 + logika 1:1).
+- **BESTCHUDY = WYKONTENEROWANY MODUŁ** (wymóg koordynatora): osobne pliki (np. `app/bestchudy/`),
+  minimalna ingerencja we wspólne/istniejące pliki — prawdziwie odrębny projekt (ale nie za wszelką
+  cenę). Do wspólnych rzeczy wchodzi przez ŁĄCZNIKI (niżej), nie przez edycję cudzych plików.
+- Propozycja koordynatora DO KONTRAKTU bestchudy (strona Sylwii rozstrzyga): realną wysyłkę wykonuje
+  TYLKO strona z zielonym; przegrana zawsze na sucho (zapis „co by zrobiła") — chroni przed podwójną
+  wiadomością do klienta.
 
 ŁĄCZNIKI (kontrakt skrzynka↔bestchudy — DOPIĄĆ PRZED kodem, dwustronnie):
 1. FEED: bestchudy prosi skrzynkę o „następny case" (wieżowczyk) albo „case po nrZam".
@@ -138,6 +144,11 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-01: **Numery WA są RÓŻNE**: STARY = desktop operatorów (chudy bez dostępu), NOWY = brama
+  WEM (+49 1579 2556775). Plus tej konfiguracji: nowy numer startuje czysty → sprawy pz0 po „dacie x"
+  mają archiwum KOMPLETNE od narodzin (brak-backfillu Meta nie boli).
+- 2026-07-01: Kontener v11 = pas SYLWII (część bestchudy). Bestchudy = wydzielony moduł (osobne
+  pliki, minimum ingerencji we wspólne). Artur bierze ARCHIWUM bramy (zapis + thread_id przy zapisie).
 - 2026-07-01: [ARTUR] Trwałość odbioru WA → gałąź `brama/trwalosc-odbioru` (PR do scalenia):
   dead-letter (`app/wspolne/deadletter.py`) + retry zapisu + `rekord_wyslany`/`dodaj_wyslane`
   (kierunek=out w archiwum). NASTĘPNA CEGŁA: klient wysyłki przez bramę (JWT + `/messages/send`)
