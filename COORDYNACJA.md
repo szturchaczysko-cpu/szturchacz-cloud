@@ -65,6 +65,30 @@ Jeśli panel wyląduje w Wieżowcu (widok Sylwii) — to STYK, uzgodnić.
 DO DECYZJI: (1) Firestore-teraz vs Postgres-teraz; (2) reguły spięcia tożsamości (ten sam klient ma
 telefon I mail — łączyć wątki?); (3) okno retencji.
 
+AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + nasz kod/sample):
+- BRAMA = nie zła konstrukcja, tylko CIENKI KONTRAKT. Dowód że silnik uniesie więcej: `/send` ma
+  `AttachmentModel{fileName, content=base64}` → brak media/id/ts w INbound pushu to WYBÓR co Krzysiek
+  forwarduje, nie limit. Jeden realny limit architektury: subskrypcja `topic="message"` łapie WSZYSTKIE
+  kanały na jeden `endpointURL` (nie zawęzisz do WA) + zero pola na HMAC/secret (autoryzacja = token w URL).
+- CO BRAMA PRZEPYCHA DZIŚ (za mało): tylko `{channel, data:{body,sender,recipient,subject}}`. BRAK:
+  message-id, czasu NADANIA, kierunku (in/out), MEDIA, statusów (doszło/przeczytane), kontekstu-odpowiedzi.
+  Haczyk stateless: brama nie gromadzi WA → każde brakujące pole to DZIURA NA ZAWSZE (nie ma skąd dobrać).
+- CZEGO NIE DA SIĘ NIGDY (to META, nie brama): historia sprzed wpięcia (zero backfillu); edycje;
+  usunięcia. Archiwum ZAWSZE startuje od zera w momencie subskrypcji. „Jak na telefonie" = nieosiągalne.
+- NASZE DZIURY (naprawialne u nas, nasz pas): (a) endpoint NIE-DURABLE — `wa_inbox.add()/set()` bez
+  try/except; błąd zapisu → 500 → wiadomość PRZEPADA (brama prawdopodobnie at-most-once); (b) ZERO
+  logowania WYCHODZĄCYCH → mamy pół dialogu; (c) brak id → doc_id=uuid4 → retransmisja=duplikat;
+  (d) ts=czas ODBIORU nie nadania. PLUS: trzymamy pełny `raw` 1:1 = jedyna siatka bezpieczeństwa (dobre).
+- SCOPE (realny, komunikować właścicielowi): „WIERNE ARCHIWUM OD DNIA WPIĘCIA W PRZÓD, best-effort" —
+  NIE lustro telefonu. Media do GCS NATYCHMIAST (link Meta żyje 5 min).
+- NASZA STRONA DO ZROBIENIA: durability (dead-letter + 200-szybko + async), log outbound, dedup-klucz
+  zastępczy do czasu id, parser głębiej + media.
+- ASKS DO KRZYŚKA (żeby brama nie była wąskim gardłem): dołóż do WA-forwardu id(wamid)+ts nadania+kierunek;
+  przepychaj MEDIA (base64 lub media-id+mime by ściągnąć z Graph w 5 min); forwarduj STATUSY; POTWIERDŹ
+  retry/bufor/ACK (czy ponawia na 5xx? czeka na nasze 200 zanim ACK-nie Metę? — to rozstrzyga kompletność);
+  subskrypcja per-kanał (koniec mieszania WA/mail/eBay + duplikatów DEV+PROD); HMAC/podpis pusha; kształt
+  pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
+
 ## DECYZJE (log — dopisuj nowe na górze)
 - 2026-06-30: Kierunek = AUTOMAT (skrzynia IN-OUT), nie ręczny operator. Faza 1 = bramka
   zielony/czerwony. Akcje z ryzykiem (kurier, wysyłka do klienta) gated NAJDŁUŻEJ.
