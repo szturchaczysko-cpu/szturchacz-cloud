@@ -72,6 +72,9 @@ def parsuj_wa(raw: Any) -> dict:
     sender = _szukaj(src, _KLUCZE["sender"])
     text = _szukaj(src, _KLUCZE["text"])
     ts_raw = _szukaj(src, _KLUCZE["ts"])
+    # Kierunek NORMALIZUJEMY do in/out. Uwaga: push bramy ma top-level `type:"message"` (typ
+    # zdarzenia, NIE kierunek) — bez normalizacji wpadałoby "message" jako kierunek.
+    kier = str(_szukaj(src, _KLUCZE["kierunek"]) or "").lower()
     return {
         "channel": channel,
         "sender": str(sender)[:64] if sender is not None else "",
@@ -79,7 +82,7 @@ def parsuj_wa(raw: Any) -> dict:
         "text": (str(text)[:4000] if text is not None else ""),
         "ts": _to_epoch(ts_raw) if ts_raw is not None else int(time.time()),
         "msg_id": str(_szukaj(src, _KLUCZE["msg_id"]) or "")[:128],
-        "kierunek": str(_szukaj(src, _KLUCZE["kierunek"]) or "in")[:16],
+        "kierunek": "out" if kier in ("out", "outbound", "outgoing", "sent") else "in",
     }
 
 
@@ -106,6 +109,10 @@ if __name__ == "__main__":
     assert parsuj_wa("surowy string")["text"] == "surowy string"
     assert parsuj_wa(None)["text"] == ""
     assert parsuj_wa({"timestamp": "1700000000000"})["ts"] == 1700000000  # ms→s
+    # realny push bramy: top-level type="message" to TYP zdarzenia, nie kierunek → normalizacja na "in"
+    p = parsuj_wa({"channel": "whatsapp", "type": "message", "data": {"body": "Hi", "sender": "49500"}})
+    assert p["kierunek"] == "in" and p["channel"] == "whatsapp" and p["text"] == "Hi"
+    assert parsuj_wa({"direction": "outbound", "body": "x"})["kierunek"] == "out"
     # sanity — rekord wychodzący ma kierunek=out i ten sam zestaw pól
     w = rekord_wyslany("WhatsApp", "48695287327", "cześć, wysyłamy etykietę", msg_id="wamid.X")
     assert w["kierunek"] == "out" and w["channel"] == "whatsapp" and w["msg_id"] == "wamid.X"
