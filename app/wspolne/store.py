@@ -356,6 +356,25 @@ class WaInboxStore(_JsonFile):
             self._write()
         return rec
 
+    def dodaj_wyslane(self, channel: str, recipient: str, body: str,
+                      msg_id: str = "", sender: str = "") -> dict:
+        """Zapisz wiadomość WYCHODZĄCĄ (kierunek=out) — druga strona dialogu w archiwum.
+        Woła to klient wysyłki przez bramę po udanym /messages/send (następna cegła)."""
+        from .brama_wa import rekord_wyslany
+        rec = {
+            "id": uuid.uuid4().hex,
+            "received_at": _now(),
+            **rekord_wyslany(channel, recipient, body, msg_id, sender),
+            "raw": {"_outbound": True, "channel": channel, "recipient": recipient, "body": body},
+            "headers": {},
+        }
+        with self._lock:
+            self._data["items"].append(rec)
+            if len(self._data["items"]) > self.MAX:
+                self._data["items"] = self._data["items"][-self.MAX:]
+            self._write()
+        return rec
+
     def recent(self, limit: int = 50) -> List[dict]:
         with self._lock:
             return list(reversed(self._data["items"]))[:max(1, min(limit, 500))]
