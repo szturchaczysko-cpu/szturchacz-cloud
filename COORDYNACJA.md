@@ -18,6 +18,54 @@ Operatorzy = TYLKO telefony, reklamacje, „czy szturchać", nie-automaty.
   operatora** (zielony/czerwony) + **panel odrzutów**.
 - Granica MIĘKKA — doprecyzowujemy TU. Cokolwiek na styku → zapisz w „STYKI/KONTRAKTY".
 
+## SKRZYNKA SZTURCHACZOVA + BESTCHUDY — mapa całości (2026-07-01, wg wizji właściciela)
+Nazwa robocza całości = **skrzynka Szturchaczova** (hub IN-OUT: auto-pobór z kanałów + wysyłka do klienta).
+Cel nadrzędny = **wychować idealnego CHUDEGO** = lepszy v11 z API, który UCZY SIĘ zachowań v11
+przez PORÓWNANIE na tych samych case'ach.
+
+MAPA (przepływ):
+- WEJŚCIA: **brama WEM** (Krzysiek, w budowie — WA-NOWY/mail/eBay) + **forum** (czytają OBA silniki,
+  z memory = ID wpisów, do sprawdzania czy przyszła odpowiedź) → **BAZA** (archiwum in/out) →
+  **ROZRZUTNIK** (priorytety; anty-spam WA) → kolejka do przeliczenia.
+- **wieżowczyk** = ociosany Wieżowiec: SUROWY feeder case'ów ze szturchacza (chronologicznie od
+  najnowszych, w zakresie dat; pole „odwrotny zam" = konkretny nrZam). BEZ parsowania/przeliczania/
+  priorytetów/uszków/świnek/pakowania w paczki — po prostu suchy wsad, ten sam dla obu silników.
+- DWA SILNIKI na TYM SAMYM case: **[v11]** (prompt `szturchacz_vnext_v1_11.txt`, BEZ API — operator
+  wkleja rolki) ‖ **[chudy]** (z API — autonomiczne ruchy po kanałach).
+- **BESTCHUDY** = split-screen porównanie + akcept operatora → WYJŚCIA (kanały) **tylko po bezpieczniku**.
+
+PODZIAŁ (praca równoległa):
+- **ARTUR = SKRZYNKA** (hydraulika we/wy): brama WEM intake + baza/archiwum + rozrzutnik + wieżowczyk
+  + **migracja v11 1:1 na Cloud Run** + kanały I/O (mail/WA/eBay/forum) z bezpiecznikiem.
+- **SYLWIA = BESTCHUDY** (osobny projekt w jej sesji): split-screen v11‖chudy + selektor u góry
+  (STANDARD / odwrotny WA / mail / eBay / forum) + akcept PER STRONA (🔴/🟢, **BRAK 🟢🟢** — operator
+  MUSI wskazać lepszą) + komentarz odrzutu + zakładka ODRZUTÓW + kalendarz (per dzień) + **ocena NA
+  KOŃCU sesji** + przyciski zgody operatora.
+
+ŁĄCZNIKI (kontrakt skrzynka↔bestchudy — DOPIĄĆ PRZED kodem, dwustronnie):
+1. FEED: bestchudy prosi skrzynkę o „następny case" (wieżowczyk) albo „case po nrZam".
+2. SILNIKI: „policz v11 na case" / „policz chudy na case" → wynik każdej strony (ten sam suchy wsad).
+3. KANAŁ (chudy): chudy żąda sprawdzenia kanału → skrzynka zwraca rolkę (ODCZYT autonomiczny OK,
+   pokazany w oknie); v11 tego nie umie → operator wkleja ręcznie.
+4. WYJŚCIE: każda wysyłka (WA/mail/eBay/forum) → skrzynka wykonuje **TYLKO po kliknięciu operatora
+   „pozwalam wysłać"** (bezpiecznik POZA promptem); v11 → pokazać treść + do kogo przed publikacją, też bezpiecznik.
+5. FORUM: odczyt + memory (ID wpisów), ładowany ZAWSZE gdy sprawa była na forum (jak v11).
+
+TWARDE ZASADY (bezpieczeństwo — nie negocjowalne):
+- **Każde WYJŚCIE** do klienta/na forum = **bezpiecznik operatora (klik)**, NIEZALEŻNIE od promptu.
+- **eBay OSTROŻNIE**: inny styl rozmów; ZERO „trumpowskich"; ZERO 300/600/900 €/5-etapów; wiele kont
+  (rozpoznanie po wsadzie, np. `pmg-service` / `ersi.877`); bezpiecznik konieczny.
+- **WA STARY vs NOWY**: chudy tylko na NOWYM numerze. Sprawy sprzed „daty x" → kontynuowane na STARYM
+  WA: operator wkleja rolkę ręcznie (jak v11), a odpowiedzi chudego na te sprawy **wysyła operator**
+  (chudy nie ma dostępu do starego). Po „dacie x": nowe pz0 (puste koperty / świeżo delivered) → NOWY WA.
+  Anty-spam WA (blokują). „Data x" = start produkcyjny chudego, stopniowo.
+- **mail**: właściwa skrzynka wg kraju (DE/UK/FR/PL); trzymać ciąg korespondencji (cytować, cała rolka).
+- **v11 = migracja 1:1**, nic nie zmieniamy w logice (referencja: `szturchacz-test`, `wiezowiec-test`).
+
+OTWARTE (do decyzji): rozrzutnik = standardy z wieżowczyka + zdarzeniowe z WEM do woreczka, miksowane
+po priorytecie (potwierdzić); login operatora = TAK (bezpiecznik potrzebuje odpowiedzialnego; docelowo
+chudy autonomiczny, ale podgląd + historia per case zostają); v11 na Cloud Run = kontener „as-is" vs port.
+
 ## STYKI / KONTRAKTY (interfejsy między pasami — TU pilnujemy spójności)
 - **Odbiór (brama→nas):** `brama_wa.py` zapisuje przychodzące do Firestore `szt_wa_inbox`
   z polem `channel` (whatsapp/email/eBay) + sender/text/ts/raw. To źródło kontekstu dla automatu.
