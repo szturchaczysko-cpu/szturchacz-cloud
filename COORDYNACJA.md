@@ -126,10 +126,9 @@ chudy autonomiczny, ale podgląd + historia per case zostają); v11 na Cloud Run
    Od commita `d2494f2` jest `app/wspolne/styki.py`: `daj_sprawe / daj_rolke(zam|thread_id) /
    policz_chudego(suchy_wsad, rolka, historia) / wyslij(...)` (sekcja ŁĄCZNIKI niżej ma sygnatury).
    **Proszę o review sygnatur** — to jest dokładnie kontrakt do potwierdzenia przez Twoją stronę.
-3. **Forum po zielonym (§6/§8.4): propozycja skrzynki = od razu przez skrzynkę** (jedna rura, jeden
-   zawór, twarde zasady w jednym miejscu). Dokładam do `styki.wyslij` tor `forum` oparty o istniejący
-   `wspolne/forum.py` (FORUM_MODE=sucho honorowany). Kontener v11 NIGDY nie wykonuje wpisów — zwraca
-   `propozycje_wyjsc` (zgodnie z Twoimi odstępstwami §2). Czekam na potwierdzenie/kontrę.
+3. **Forum po zielonym — NIEAKTUALNE, rozstrzygnięte przez WŁAŚCICIELA** (patrz DECYZJE 2026-07-02):
+   v11 pisze na forum NATURALNIE, bez bramek i bez zmian w apce/prompcie (produkcyjna praca bieżąca).
+   Zawór skrzynki (`styki.wyslij`, w tym przyszły tor forum) dotyczy WYŁĄCZNIE chudego.
 4. **Pamięć forum (§8.5): propozycja = WSPÓLNA** (`szt_forum_memory`; oba silniki muszą widzieć te
    same wątki, inaczej bumpy się rozjadą). Szczegół: kto pisze/kiedy — doprecyzujmy w kontrakcie;
    Twoja propozycja mile widziana (kontener przez styk czy bezpośrednio do kolekcji).
@@ -212,6 +211,27 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-02: **WŁAŚCICIEL rozstrzygnął bramki PLAN.md §8** (uwaga: pkt 1 INACZEJ niż rekomendacje
+  OBU stron — decyzja właścicielska, obowiązuje):
+  1. **Kontener v11 = AS-IS, nie port.** Sesja Sylwii bierze pliki apki streamlitowej + prompt v11
+     i umieszcza je w kontenerze tak, żeby odpalały się CZYSTO, bez symulacji. Pliki najlepiej
+     NIETKNIĘTE (przeniesienie 1:1); w najgorszym razie zmiana WYŁĄCZNIE fragmentów odpowiedzialnych
+     za odpałkę (start/port/sekrety) na cloudrunowe. ŻADNEJ ekstrakcji/przepisywania logiki.
+     Powód właściciela: „przepisany v11" = ryzyko symulacji zamiast wzorca (dryf).
+  2. **Wpisy v11 na forum = NATURALNE.** Zero bramek, zero zmian w prompcie i w apce v11 — to jest
+     PRODUKCYJNY operator: przy okazji testów chudego wykonywana jest bieżąca realna praca (na v11
+     lub chudym). Konsekwencja: ZAWÓR skrzynki (styki.wyslij) dotyczy WYŁĄCZNIE chudego — chudy
+     w cieniu (sucho→realne per silnik), v11 na żywo jak zawsze.
+  3. **FEED: opcja (a) potwierdzona** — rozbudowujemy wieżowczyk (pas Artura: `wsad_panel` FORMAT 2
+     co do znaku + KOPERTA z Comment).
+  4. **Pamięć forum: WSPÓLNA** — szczegóły wykonania po stronie Sylwii.
+  5. **Quota Vertex: bez rotacji** (jeden projekt na start).
+  KONSEKWENCJE PRZYJĘTE (dla planu Sylwii — do przerobienia §2/§3 PLAN.md w jej PR): przy as-is
+  porównywarka NIE woła v11 przez API (Streamlit to UI) → lewa strona = stara apka otwarta OBOK
+  (osobne okno/karta), wsad wklejany ręcznie do OBU stron — co i tak było planem fazy B; werdykty/
+  odrzuty/kalendarz zbiera bestchudy. Długofalowo nic nie tracimy: automatem będzie CHUDY (za
+  zaworem), v11 jest WZORCEM-nauczycielem, nie przyszłym automatem. Lokalizacja plików kontenera:
+  domyślnie katalog `kontener_v11/` w tym repo — chyba że strona Sylwii zgłosi inaczej.
 - 2026-07-02: [ARTUR] **WIEŻOWCZYK v1 zbudowany** (kafelek w zapleczu): surowy wsad spraw z bazy
   franciszkańskiej przez WSPÓLNY silnik (`app/wspolne/klient_baz.py` → db-broker/silnik_baz;
   READ-ONLY, wejścia regex-whitelist). Źródło wg atlasu: `STEEPC.dbo.v_austachStatusProsty`
