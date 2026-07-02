@@ -133,7 +133,9 @@ async function loadWiezowczyk() {
     meta.textContent = (s.klient_nazwa || "") + (s.kakMail ? " · " + s.kakMail : "") + (s.ktTelNr ? " · " + s.ktTelNr : "");
     const pre = document.createElement("pre");
     pre.className = "codeblock";
-    pre.textContent = s.suchy_wsad + (s.ContentTag ? "\n\nContentTag:\n" + s.ContentTag : "\n\n(bez taga)");
+    const koperta = (s.koperta || []).map((k) => `[${k.kiedy}] ${k.kto}: ${k.tresc}`).join("\n");
+    pre.textContent = (s.wsad_panel || s.suchy_wsad)
+      + (koperta ? "\n\n— KOPERTA (Comment):\n" + koperta : "");
     d.appendChild(sum); d.appendChild(meta); d.appendChild(pre);
     box.appendChild(d);
   });

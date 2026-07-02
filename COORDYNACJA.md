@@ -246,6 +246,17 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [ARTUR] **FEED GOTOWY — Sylwia: spinaj B3.** Wieżowczyk przerobiony pod wzorce
+  produkcyjne (PLAN.md §5.1): pełny widok `v_austachStatus` (kaCountry=pełna nazwa kraju, etapy
+  stage/active/date, doręczenia ua_ups_*, lindexy, listy ua_ups_TrackingNr+zwne, EbayLogin/buyerNick)
+  + pole **`wsad_panel`** (układ 1:1 wg wzorców — ZWERYFIKOWANE na żywej bazie: sprawy 381879
+  i 381865 odtworzone TOKEN W TOKEN, łącznie z tagiem) + pole **`koperta`** (lista {kto,kiedy,tresc}
+  z SZTURCHACZ.dbo.Comment po austaush; surowa — formatowanie COP# po stronie semantycznej).
+  `suchy_wsad` bez zmian (lista). UWAGI: słownik kurierów EMPIRYCZNY {1:UPS, 5:FEDEX} — inne
+  wartości lecą surową liczbą, uzupełniać gdy wypłynie nowy; „Bieżący etap" przy wysłanym mailu =
+  `Mail wysłany <data>` (wzorce miały tylko wariant „Nie wysłano żadnego maila" — potwierdzić
+  przy pierwszym takim case). NIE wdrożone jeszcze na serwer (styk daj_sprawe odda wsad_panel po
+  najbliższym deployu).
 - 2026-07-03: [ARTUR] **SPLIT VIEW NA ŻYWO** — trzy klocki koordynatora dowiezione: (1) sekrety
   v11 w Secret Managerze (v11-firebase-creds = SA starego projektu roboczy-bez-limitu,
   v11-forum-bearer; odczyt dla SA Cloud Run — autoryzacja właściciela), (2) **kontener-v11 stoi**:
