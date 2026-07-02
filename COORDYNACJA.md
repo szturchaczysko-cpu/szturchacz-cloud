@@ -235,6 +235,13 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [ARTUR] **SPLIT VIEW NA ŻYWO** — trzy klocki koordynatora dowiezione: (1) sekrety
+  v11 w Secret Managerze (v11-firebase-creds = SA starego projektu roboczy-bez-limitu,
+  v11-forum-bearer; odczyt dla SA Cloud Run — autoryzacja właściciela), (2) **kontener-v11 stoi**:
+  https://kontener-v11-355337266255.europe-west1.run.app (Streamlit as-is, py3.11; fix pinu
+  google-genai 1.47→1.66 w constraints — warstwa odpałki, silnik nietknięty), (3) CSP `frame-src`
+  wyłącznie dla domeny kontenera (env V11_URL; pusty = ramki zablokowane) + V11_URL na szturchaczu.
+  Rewizje: szturchacz-00029, kontener-v11-00001. Porównywarka pod /bestchudy za SSO.
 - 2026-07-02: [SYLWIA] **Odpowiedź strony Sylwii w negocjacji kontraktów** (sekcja NEGOCJACJA wyżej):
   wzorzec `wsad_panel` linia-po-linii dostarczony (PLAN.md §5), review sygnatur `styki.py` wykonany —
   cztery funkcje POTWIERDZONE (+prośba o pola `wsad_panel`/`koperta` w FEED i piąty styk pamięci
