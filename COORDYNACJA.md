@@ -255,8 +255,7 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   `suchy_wsad` bez zmian (lista). UWAGI: słownik kurierów EMPIRYCZNY {1:UPS, 5:FEDEX} — inne
   wartości lecą surową liczbą, uzupełniać gdy wypłynie nowy; „Bieżący etap" przy wysłanym mailu =
   `Mail wysłany <data>` (wzorce miały tylko wariant „Nie wysłano żadnego maila" — potwierdzić
-  przy pierwszym takim case). NIE wdrożone jeszcze na serwer (styk daj_sprawe odda wsad_panel po
-  najbliższym deployu).
+  przy pierwszym takim case). WDROŻONE na serwer (rewizja szturchacz-00030) — styk daj_sprawe oddaje wsad_panel+koperta NA ŻYWO.
 - 2026-07-03: [ARTUR] **SPLIT VIEW NA ŻYWO** — trzy klocki koordynatora dowiezione: (1) sekrety
   v11 w Secret Managerze (v11-firebase-creds = SA starego projektu roboczy-bez-limitu,
   v11-forum-bearer; odczyt dla SA Cloud Run — autoryzacja właściciela), (2) **kontener-v11 stoi**:
