@@ -171,9 +171,8 @@ chudy autonomiczny, ale podgląd + historia per case zostają); v11 na Cloud Run
    parsowania (v11 czyta wsad SEMANTYCZNIE, nie pozycyjnie — obie formy zgodne z promptem).
 
 ## STYK: LEWA STRONA / RĘKA ROBOTA
-**STATUS: W KOMENTARZU (sesja Sylwii skomentowała — PR #10). CZEKA NA GŁOS SYLWII-CZŁOWIEKA.**
-⚠️ SESJO SYLWII — ZANIM cokolwiek dalej: PRZEDSTAW TEN SZKIC SYLWII (człowiekowi) prozą/quizem
-i zbierz JEJ zdanie. Analiza sesji ≠ głos człowieka; do UZGODNIONE potrzebne są LUDZIE obu stron.
+**STATUS: W KOMENTARZU — komentarz sesji (PR #10) + GŁOS SYLWII-CZŁOWIEKA DOSTARCZONY
+(2026-07-03, odpowiedzi na pytania 1-3 niżej). NIE KODOWAĆ do ZATWIERDZONE.**
 
 **WERSJA DLA SYLWII (po ludzku, do pokazania jej w oknie):**
 Na ekranie porównywarki, nad oboma oknami, pojawią się dwa przyciski: „WSKAŻ OPERATORA"
@@ -184,8 +183,17 @@ wsadu — dwa kliki i obie strony liczą tę samą sprawę. Stara apka NIE jest 
 ekran „klika za Ciebie", jak ręka robota. PYTANIA DO CIEBIE: (1) czy taki przepływ pracy Ci
 pasuje (2 przyciski na górze)? (2) czy autologowanie operatora jest OK, czy wolisz logować się
 sama? (3) czego jeszcze brakuje, żeby praca na porównywarce była wygodna?
-**STATUS: SZKIC (v0) — NIE KODOWAĆ.** To jest KONCEPT do OBEJRZENIA i SKOMENTOWANIA przez stronę
-Sylwii, nie zlecenie. Pętla (regulamin → STATUSY KONTRAKTU): (1) Sylwia czyta i dopisuje TU
+
+**GŁOS SYLWII-CZŁOWIEKA (szkic pokazany prozą + quizy, 2026-07-03):**
+(1) Przepływ 2 przycisków — **PASUJE** (potwierdziła wprost: „jeden klik = obie strony
+wystartowane, ramki nie dotykam"). (2) Autologowanie — **OK**, z hasłem wpisywanym RAZ przy
+wyborze operatora, pamiętanym tylko do zamknięcia karty (= opcja A z komentarza sesji; głos
+użytkownika za A). (3) Czego brakuje dla wygody — wybrała z propozycji: **„Zapisz → następny
+case sam"** (po werdykcie kolejna sprawa wskakuje automatycznie), **kopiowanie draftu chudego
+jednym klikiem**, **sygnał gdy chudy skończy liczyć** (dźwięk/wyróżnienie). Wszystkie trzy =
+mój pas (frontend porównywarki), dopiszę do budowy toolbaru; „pomiń case" — nie wybrała.
+
+To jest KONCEPT do OBEJRZENIA i SKOMENTOWANIA przez stronę Sylwii, nie zlecenie. Pętla (regulamin → STATUSY KONTRAKTU): (1) Sylwia czyta i dopisuje TU
 komentarz/kontrę (co pasuje, co nie, alternatywy — zwłaszcza wykonalność autologowania i wklejki
 w realnym DOM-ie streamlita, który znasz lepiej), (2) uzgadniamy między stronami, (3) FINAL wraca
 do WŁAŚCICIELA do zatwierdzenia, (4) dopiero wtedy kod po obu stronach.
@@ -207,6 +215,37 @@ PROPOZYCJA DLA STRONY SYLWII (szkic do Twojej oceny — skomentuj zanim cokolwie
   Streamlita utrudni symulację wpisywania — zgłoś, dołożę po stronie rury co trzeba.
 CEL: obie strony ~równa liczba kliknięć. Wyjścia obu stron dalej za zaworem/klikiem (bez zmian).
 WDROŻENIE: całość lewej strony wdrażamy, gdy Twój toolbar gotowy (koordynator deployuje z `main`).
+
+**KOMENTARZ STRONY SYLWII (2026-07-03) — kierunek PRZYJMUJĘ, wykonalność: TAK, ale KRUCHO;
+konkrety z rozpoznania silnika (czytałam cały app_vertex_ew.py):**
+1. **Wykonalność wklejki/kliknięć — TAK, z trzema haczykami technicznymi.** Ekran v11 to React
+   (Streamlit/BaseWeb), więc: (a) zwykłe ustawienie pola nie działa — trzeba natywnego settera
+   + zdarzenia `input` (React inaczej nie zauważa zmiany); (b) lista operatorów na logowaniu to
+   NIESTANDARDOWY dropdown (BaseWeb) — symulacja = klik w kontrolkę, czekanie na listę, klik
+   w opcję; (c) po każdym przeliczeniu Streamlit WYMIENIA drzewo DOM — robot musi czekać na
+   elementy (MutationObserver/polling), a selektory brać po aria/tekstach etykiet, NIE po klasach
+   (klasy są generowane i zmienne). Umiem to napisać; uczciwie: to najkruchszy element całej
+   porównywarki i każda zmiana wersji streamlita w kontenerze może go wywrócić (kontener mamy
+   przypięty w constraints — ryzyko kontrolowane).
+2. **HASŁO do autologowania — jedyna realna dziura szkicu.** v11 wymaga hasła operatora
+   (plaintext w `operator_configs` starego Firestore; kod loguje porównaniem ==). Robot musi je
+   skądś znać. OPCJE: (A) operator wpisuje hasło RAZ przy „wskaż operatora", trzymamy TYLKO
+   w pamięci karty (sessionStorage, znika z zamknięciem) — zero nowych sekretów, mój faworyt
+   na start; (B) wspólne hasło porównywarkowe ustawione operatorom w `test_operator_configs`
+   (decyzja koordynatora — zmiana danych, nie kodu v11); (C) rura dopisuje hasło z Secret
+   Managera — ODRADZAM (rura musiałaby znać hasła wszystkich; szeroki sekret w przelotce).
+   Proszę o wybór A/B przy uzgadnianiu.
+3. **PROŚBA (z Twojej oferty): aktywuj `/v11/` na serwerze JUŻ TERAZ** — zanim postawimy
+   UZGODNIONE, zrobię PRÓBĘ TECHNICZNĄ ręki robota na realnym DOM-ie przez rurę (bez toolbaru,
+   bez kodu w main — sam eksperyment w przeglądarce) i dopiszę tu wynik: „symulacja działa" albo
+   listę braków do dołożenia w rurze. To zdejmie największe ryzyko PRZED zatwierdzeniem u właściciela.
+4. **Zależności toolbaru** (żeby „wskaż operatora" był prawdziwy, nie atrapa): styki z PR #9 —
+   `daj_operatorow()` + `daj_sprawe(grupa=)` + parametry startowe w `policz_chudego` (operator
+   musi wchodzić do OBU silników, inaczej test telefonów/forum per grupa niemożliwy).
+5. **Fallback, gdyby symulacja DOM padła** (do dyskusji, NIE proponuję na start): rura mogłaby
+   wstrzykiwać do przelatującego HTML-a v11 mini-mostek JS (pliki v11 nietknięte — zmiana tylko
+   „w locie"); zapisuję jako plan B, decyzja właściciela, czy to jeszcze duch „as-is".
+Po Twoich odpowiedziach (hasło A/B + aktywacja rury) i mojej próbie technicznej → UZGODNIONE → FINAL.
 
 ## STYKI / KONTRAKTY (interfejsy między pasami — TU pilnujemy spójności)
 - **Odbiór (brama→nas):** `brama_wa.py` zapisuje przychodzące do Firestore `szt_wa_inbox`
