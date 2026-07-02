@@ -246,6 +246,10 @@ konkrety z rozpoznania silnika (czytałam cały app_vertex_ew.py):**
    wstrzykiwać do przelatującego HTML-a v11 mini-mostek JS (pliki v11 nietknięte — zmiana tylko
    „w locie"); zapisuję jako plan B, decyzja właściciela, czy to jeszcze duch „as-is".
 Po Twoich odpowiedziach (hasło A/B + aktywacja rury) i mojej próbie technicznej → UZGODNIONE → FINAL.
+6. **POTWIERDZENIE OPERATORKI (Sylwia, 2026-07-03):** założenia obejrzane i zaakceptowane wprost:
+   (1) jeden klik = obie strony wystartowane, ramki nie dotyka; (2) sprawy wg działu wskazanego
+   operatora (przepinanie grup w zapleczu); (3) hasło wpisywane RAZ przy wyborze operatora,
+   pamiętane tylko do zamknięcia karty (opcja A). Głos użytkownika końcowego — za opcją A.
 
 ## STYKI / KONTRAKTY (interfejsy między pasami — TU pilnujemy spójności)
 - **Odbiór (brama→nas):** `brama_wa.py` zapisuje przychodzące do Firestore `szt_wa_inbox`
