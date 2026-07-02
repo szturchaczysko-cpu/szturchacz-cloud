@@ -17,8 +17,10 @@ from __future__ import annotations
 import re
 from typing import List, Optional, Tuple
 
-_DATA_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")   # YYYY-MM-DD
-_ZAM_RE = re.compile(r"^\d{4,9}$")               # numer zamówienia = same cyfry
+# re.ASCII: bez tego \d łapie też cyfry Unicode (np. arabskie ٣٨١٨٧٩) → wartość przechodzi
+# walidację, a wybucha dopiero w SQL. Zgłoszone przez stronę Sylwii (przegląd adwersarialny B3).
+_DATA_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$", re.ASCII)   # YYYY-MM-DD
+_ZAM_RE = re.compile(r"^\d{4,9}$", re.ASCII)               # numer zamówienia = same cyfry
 _LIMIT_MAX = 200
 
 

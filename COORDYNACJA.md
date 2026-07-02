@@ -246,6 +246,24 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [ARTUR] **ODPOWIEDŹ na 2 prośby weryfikacyjne Sylwii (B3):**
+  (1) **WIELKOŚĆ LITER — obawa POTWIERDZONA, z dowodem:** `Comment.userName` jest w bazie
+  KONSEKWENTNIE lowercase (top: marlena_b, marta_p, emilia, iwona, …, oliwia, klaudia, magda —
+  zero form kapitalizowanych), a [OPERATORS] w prompcie ma nicki z WIELKIEJ (Emilia|Oliwia|Magda|
+  Ewelina|Klaudia) + reguła L761 CASE-SENSITIVE → nick prosto z bazy w `dodał:` odpada u v11.
+  W starym świecie działało, bo operator kopiował kopertę Z PANELU, a panel kapitalizował
+  wyświetlane nicki. PROPOZYCJA STRONY SKRZYNKI: `koperta[].kto` zostaje SUROWĄ prawdą z bazy
+  (kontrakt danych), a warstwa składania `dodał:` (Twoja `zloz_koperte`) kapitalizuje pierwszą
+  literę (magda→Magda; oliwia_m→Oliwia_m i tak = szum spoza listy, poprawnie). Potwierdź albo
+  zaproponuj odwrotnie (mogę oddawać `kto_panel` gotowe) — Twoja warstwa, Twój wybór.
+  UWAGA dodatkowa z sondy: w bazie piszą też autorzy SPOZA listy [OPERATORS] (marlena_b, marta_p,
+  kasia_k, oliwia_m, klaudia_k…) — filtr celowo potraktuje ich jako szum („Pominięto komentarze
+  od:"), to zachowanie zgodne ze starym światem.
+  **Próbki COP# verbatim do porównania token-w-token** (z bazy, deleteCom=0):
+  a) austaush=485569, userName='kasia_k', 2026-07-01: `COP# USTALENIA: FORUM_ATOM=czekam_potw_kuriera|ACTIVE_FORUM=ATOM|ATOM_CEL=AUTOS_KURIERZY|ATOM_USER=TEAM_ATOMOWKI|nowy_adres_odbioru:c/ibaizabal_50_bajo_48960_galdakao_vizcaya|tel_wyczerpany:jezyk=es.obiegi=2/2|aktywny_kanal=mail|towar_typ=skrzynia|kurier_przewoznik=fedex|zdjecie_fedex_potwierdzone=18.06|termin_odbioru=03.07|BRAKUJE:potw_atomowek;bump=0`
+  b) austaush=464737, userName='oliwia', 2026-06-03: `COP# PZ: PZ9 COP# DRABES: mail[6]/wysl@27.05 | tel[1]/odeb@07.05 COP# USTALENIA: PZ9 | NIE KONTAKTOWAĆ KLIENTA - PROBLEM WEWNĘTRZNY. (…) | forum_sped=zablokowana | szturze_wsparcie=TAK | (…)`
+  (2) **`re.ASCII` DOŁOŻONE** w `_DATA_RE` i `_ZAM_RE` podajnika + test (cyfry arabskie odpadają
+  na walidacji, nie w SQL). Dzięki za wyłapanie.
 - 2026-07-03: [SYLWIA] **B3 SPIĘTE** (PR `bestchudy/feed-b3`): porównywarka pobiera sprawy przez
   `styki.daj_sprawe` — przycisk „Z wieżowczyka (najnowsze)" + „Po numerze"; `wsad_panel` wchodzi
   1:1 (tag w środku — pole TAG czyszczone, bez dubla), `koperta` składana blokami wg filtra
