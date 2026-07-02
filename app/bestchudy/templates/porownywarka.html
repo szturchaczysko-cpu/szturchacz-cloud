@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BESTCHUDY — porównywarka v11 ‖ chudy</title>
+  <!-- Motyw wspólny ekosystemu (read-only) + layout pasa bestchudy -->
+  <link rel="stylesheet" href="/static/theme.css">
+  <link rel="stylesheet" href="/bestchudy/static/bc.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar__brand">⚖️ BESTCHUDY <span class="meta">porównywarka v11 ‖ chudy</span></div>
+    <div class="topbar__right">
+      <span class="badge badge--accent">{{ operator.label or operator.pid }}</span>
+      <a class="btn btn--ghost btn--small" href="/">Szturchacz</a>
+    </div>
+  </div>
+
+  <main class="bc-main">
+    <div class="bc-zakladki" id="bc-zakladki">
+      <button class="chip is-active" data-zakladka="porownywarka" type="button">Porównywarka</button>
+      <button class="chip" data-zakladka="odrzuty" type="button">Odrzuty</button>
+      <button class="chip" data-zakladka="kalendarz" type="button">Kalendarz + ocena</button>
+    </div>
+
+    <!-- ═══ ZAKŁADKA: PORÓWNYWARKA ═══ -->
+    <section class="bc-ekran" data-ekran="porownywarka">
+      <div class="card">
+        <div class="card__title">Sprawa (ręczne wklejanie — do czasu styku FEED z wsad_panel)</div>
+        <div class="bc-tryby" id="bc-tryby">
+          {% for t in tryby %}
+          <button class="chip{% if loop.first %} is-active{% endif %}" data-tryb="{{ t }}" type="button">{{ t }}</button>
+          {% endfor %}
+        </div>
+        <div class="bc-wsad-siatka">
+          <label class="bc-pole">WSAD PANEL
+            <textarea id="wsad-panel" class="text-input" rows="7"
+              placeholder="nagłówek: NRZAM RRRR-MM-DD nick… + linie FORMAT 2 (PLAN.md §5)"></textarea>
+          </label>
+          <label class="bc-pole">KOPERTA (surowa, opcjonalnie)
+            <textarea id="koperta" class="text-input" rows="7"
+              placeholder="komentarze sprawy — bloki „dodał:" / COP#"></textarea>
+          </label>
+        </div>
+        <div class="bc-wsad-siatka">
+          <label class="bc-pole">TAG (opcjonalnie)
+            <input id="tag" class="text-input" placeholder="c#:…;pz=…;next=…">
+          </label>
+          <label class="bc-pole">ROLKA z kanału (opcjonalnie)
+            <textarea id="rolka" class="text-input" rows="3"
+              placeholder="rozmowa MY/KLIENT wklejona ręcznie (albo później styk daj-rolkę)"></textarea>
+          </label>
+        </div>
+        <div class="bc-przyciski">
+          <button id="btn-kopiuj" class="btn btn--primary" type="button">📋 KOPIUJ WSAD (dla v11)</button>
+          <button id="btn-policz" class="btn btn--primary" type="button">▶️ POLICZ CHUDEGO</button>
+          <span id="nrzam-znacznik" class="badge">NrZam: —</span>
+          <span id="wsad-status" class="meta"></span>
+        </div>
+        <details class="bc-podglad"><summary class="meta">Podgląd sklejki (to dostają OBIE strony)</summary>
+          <pre id="sklejka-podglad" class="codeblock"></pre>
+        </details>
+      </div>
+
+      <div class="bc-split">
+        <div class="panel bc-strona">
+          <div class="section-title">v11 (wzorzec) — praca w ramce, wsad wklejasz przyciskiem KOPIUJ</div>
+          {% if v11_url %}
+          <iframe id="v11-ramka" class="bc-ramka" src="{{ v11_url }}" title="Silnik v11"></iframe>
+          {% else %}
+          <div class="empty">Kontener v11 jeszcze niewdrożony (brak <code>V11_URL</code>).<br>
+            Ramka pojawi się po wdrożeniu przez koordynatora; do tego czasu pracuj z v11 w osobnej
+            karcie i oceniaj tutaj.</div>
+          {% endif %}
+        </div>
+
+        <div class="panel bc-strona">
+          <div class="section-title">chudy (uczeń) — silnik skrzynki przez styk</div>
+          <div id="chudy-rozmowa" class="chat bc-rozmowa" aria-live="polite"></div>
+          <div class="bc-dopisz">
+            <input id="chudy-wiadomosc" class="text-input" placeholder="Odpowiedz chudemu (SESJA OK / WYNIK…)"
+                   aria-label="Wiadomość do chudego">
+            <button id="btn-dopisz" class="btn btn--small" type="button">Wyślij do silnika</button>
+          </div>
+          <details class="bc-wyslij">
+            <summary class="meta">📨 Wyślij do klienta (zawór skrzynki — klik = zgoda)</summary>
+            <div class="bc-wyslij-siatka">
+              <select id="wyslij-kanal" class="text-input" aria-label="Kanał">
+                <option value="whatsapp">whatsapp</option>
+                <option value="email">email</option>
+                <option value="ebay">ebay (zawór zamknięty)</option>
+                <option value="forum">forum (osobny tor)</option>
+              </select>
+              <input id="wyslij-adresat" class="text-input" aria-label="Adresat"
+                     placeholder="adresat (numer / e-mail)">
+              <input id="wyslij-temat" class="text-input" aria-label="Temat e-maila"
+                     placeholder="temat (e-mail)">
+            </div>
+            <textarea id="wyslij-tresc" class="text-input" rows="3" aria-label="Treść wiadomości"
+                      placeholder="treść od chudego (skopiuj draft)"></textarea>
+            <button id="btn-wyslij" class="btn btn--danger" type="button">✅ POZWALAM WYSŁAĆ</button>
+            <div id="wyslij-status" class="meta"></div>
+          </details>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card__title">Werdykt (obie strony; 🟢🟢 zabronione — wskaż lepszą)</div>
+        <div class="bc-werdykty">
+          <div class="bc-werdykt" id="werdykt-v11" data-strona="v11">
+            <span class="section-title">v11:</span>
+            <button class="chip" data-werdykt="zielony" type="button">🟢 zielony</button>
+            <button class="chip" data-werdykt="czerwony" type="button">🔴 czerwony</button>
+          </div>
+          <div class="bc-werdykt" id="werdykt-chudy" data-strona="chudy">
+            <span class="section-title">chudy:</span>
+            <button class="chip" data-werdykt="zielony" type="button">🟢 zielony</button>
+            <button class="chip" data-werdykt="czerwony" type="button">🔴 czerwony</button>
+          </div>
+        </div>
+        <textarea id="komentarz" class="text-input" rows="2" aria-label="Komentarz odrzutu"
+          placeholder="Komentarz odrzutu (wymagany przy czerwonym): co było nie tak / czego zabrakło"></textarea>
+        <div class="bc-przyciski">
+          <button id="btn-zapisz" class="btn btn--primary" type="button">💾 Zapisz porównanie</button>
+          <span id="zapis-status" class="message"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ ZAKŁADKA: ODRZUTY ═══ -->
+    <section class="bc-ekran" data-ekran="odrzuty" hidden>
+      <div class="card">
+        <div class="card__title">Odrzuty (czerwone werdykty + komentarze)</div>
+        <div class="bc-przyciski">
+          <input id="odrzuty-dzien" class="text-input bc-data" type="date" aria-label="Dzień">
+          <button id="btn-odrzuty" class="btn btn--small" type="button">Odśwież</button>
+        </div>
+        <div id="odrzuty-lista" class="list"></div>
+      </div>
+    </section>
+
+    <!-- ═══ ZAKŁADKA: KALENDARZ + OCENA ═══ -->
+    <section class="bc-ekran" data-ekran="kalendarz" hidden>
+      <div class="card">
+        <div class="card__title">Kalendarz porównań (per dzień)</div>
+        <div class="bc-przyciski">
+          <input id="kalendarz-dzien" class="text-input bc-data" type="date" value="{{ dzis }}" aria-label="Dzień">
+          <button id="btn-kalendarz" class="btn btn--small" type="button">Pokaż dzień</button>
+          <span id="kalendarz-liczby" class="meta"></span>
+        </div>
+        <div id="kalendarz-lista" class="list"></div>
+      </div>
+      <div class="card">
+        <div class="card__title">Ocena na końcu sesji</div>
+        <textarea id="ocena-uwagi" class="text-input" rows="3" aria-label="Uwagi do oceny sesji"
+          placeholder="Podsumowanie dnia: co chudy robi dobrze, gdzie odstaje od v11, wnioski"></textarea>
+        <div class="bc-przyciski">
+          <button id="btn-ocena" class="btn btn--primary" type="button">🏁 Zakończ sesję (zapisz ocenę)</button>
+          <span id="ocena-status" class="message"></span>
+        </div>
+        <div id="oceny-lista" class="list"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/bestchudy/static/bc.js"></script>
+</body>
+</html>

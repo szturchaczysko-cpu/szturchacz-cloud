@@ -1,0 +1,46 @@
+/* BESTCHUDY — TYLKO layout pasa, wszystko na tokenach motywu (zero własnych kolorów). */
+
+.bc-main { max-width: 1400px; margin: 0 auto; padding: var(--space-4); display: grid; gap: var(--space-4); }
+
+.bc-zakladki { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+.bc-ekran { display: grid; gap: var(--space-4); }
+.bc-ekran[hidden] { display: none; }  /* atrybut hidden musi wygrywać z display:grid */
+
+.bc-tryby { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-3); }
+
+.bc-wsad-siatka { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-3); }
+.bc-pole { display: grid; gap: var(--space-1); font-size: var(--fs-sm, 0.85rem); color: var(--muted); }
+.bc-pole .text-input { width: 100%; box-sizing: border-box; font-family: inherit; }
+
+.bc-przyciski { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; margin-top: var(--space-2); }
+.bc-podglad { margin-top: var(--space-2); }
+.bc-podglad .codeblock { max-height: 260px; overflow: auto; white-space: pre-wrap; }
+
+.bc-split { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); align-items: start; }
+.bc-strona { display: grid; gap: var(--space-2); min-height: 320px; }
+
+.bc-ramka { width: 100%; height: 72vh; border: 1px solid var(--line, var(--border)); border-radius: var(--radius); background: var(--card); }
+
+/* Bez display:grid — .chat z motywu jest flex-kolumną i .msg--mine wyrównuje się do prawej */
+.bc-rozmowa { max-height: 52vh; overflow: auto; gap: var(--space-2); padding: var(--space-2); }
+.bc-rozmowa .msg { white-space: pre-wrap; }
+.bc-dopisz { display: grid; grid-template-columns: 1fr auto; gap: var(--space-2); }
+
+.bc-wyslij-siatka { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-2); margin: var(--space-2) 0; }
+.bc-wyslij .text-input { width: 100%; box-sizing: border-box; }
+.bc-wyslij .btn { margin-top: var(--space-2); }
+
+.bc-werdykty { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-3); }
+.bc-werdykt { display: flex; gap: var(--space-2); align-items: center; }
+
+.bc-data { max-width: 180px; }
+
+.bc-pozycja { padding: var(--space-2) 0; border-bottom: 1px solid var(--line, var(--border)); }
+.bc-pozycja .meta { display: block; margin-top: 2px; }
+.bc-pozycja pre { white-space: pre-wrap; margin: var(--space-1) 0 0; font-size: 0.85em; color: var(--text-2, var(--muted)); }
+
+@media (max-width: 1000px) {
+  .bc-split, .bc-wsad-siatka, .bc-werdykty, .bc-wyslij-siatka { grid-template-columns: 1fr; }
+  .bc-ramka { height: 60vh; }
+}
