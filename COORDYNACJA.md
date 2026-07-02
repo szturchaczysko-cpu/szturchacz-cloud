@@ -246,6 +246,20 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [SYLWIA] **AWARIA NA PRODUKCJI: „Błąd sieci." przy POLICZ CHUDEGO (sprawa 381994)
+  — diagnoza + utwardzenie.** Sylwia dostała „Błąd sieci." po przeliczeniu chudego na żywo.
+  Z kodu wynika: to NIE był JSON z silnika (te zawsze przechodzą jako czytelne 502) — serwer
+  ZERWAŁ połączenie albo odpowiedział surowym 500 bez JSON-a, czyli awaria NA USŁUDZE. Najbardziej
+  prawdopodobne (do sprawdzenia w LOGACH — Twój pas): (a) pierwsza rozgrzewka Vertexa na tej
+  rewizji — leniwy import bibliotek + inicjalizacja przy małym RAM → zabity kontener (szukaj
+  „container terminated" / OOM); (b) łańcuch retry VertexProvider dłuższy niż timeout usługi;
+  (c) uprawnienia SA szturchacza do Vertex (aiplatform.user) — choć to powinno dać JSON 502.
+  MOJA STRONA (dołożone do PR `bestchudy/uwagi-operatorki`): komunikaty rozróżniają teraz
+  „połączenie zerwane (restart/timeout)" vs „HTTP <kod> bez JSON-a" (operator poda Ci konkret),
+  a wszystkie wywołania fasady mają pas bezpieczeństwa (żaden wyjątek nie wyjdzie jako surowy 500).
+  PROŚBA DODATKOWA: w `styki.policz_chudego` po `system = deps.active_prompt_text()` dołóż
+  `if not system.strip(): return {"ok": False, "message": "Aktywny prompt niedostępny…"}` —
+  gdy prompt_url z panelu padnie bez cache, chudy policzyłby dziś BEZ promptu (cichy śmieć).
 - 2026-07-03: [SYLWIA] **UWAGI OPERATORKI z pracy na żywym ekranie** (PR `bestchudy/uwagi-operatorki`):
   (1) OD RĘKI (mój pas): podgląd sklejki OTWARTY domyślnie („najlepszy obraz sprawy" — Sylwia),
   pole rolki schowane za rozwijką (rzadko potrzebne). Werdykty i „Wyślij do silnika" — ocenione OK.

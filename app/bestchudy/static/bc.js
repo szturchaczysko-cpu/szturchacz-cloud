@@ -7,15 +7,26 @@
   const LIMIT_TAG = 2000;
 
   async function api(path, body) {
+    // Rozróżniamy DWIE awarie (diagnoza z produkcji, 2026-07-03): zerwane połączenie
+    // (restart instancji / timeout usługi) vs odpowiedź serwera bez JSON-a (surowy 500).
+    // Ogólne „Błąd sieci." wysyłało ludzi w złą stronę.
+    let r;
     try {
-      const r = await fetch(path, body ? {
+      r = await fetch(path, body ? {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       } : undefined);
+    } catch (e) {
+      return { ok: false, message: "Połączenie zerwane w trakcie — serwer nie dokończył " +
+        "odpowiedzi (możliwy restart usługi albo timeout). Spróbuj ponownie; jeśli się " +
+        "powtarza, zgłoś koordynatorowi." };
+    }
+    try {
       return await r.json();
     } catch (e) {
-      return { ok: false, message: "Błąd sieci." };
+      return { ok: false, message: "Serwer odpowiedział awarią bez treści (HTTP " + r.status +
+        ") — błąd po stronie serwera, nie sieci. Podaj koordynatorowi ten numer HTTP." };
     }
   }
 
