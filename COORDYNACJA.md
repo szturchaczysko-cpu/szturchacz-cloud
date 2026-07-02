@@ -170,6 +170,25 @@ chudy autonomiczny, ale podgląd + historia per case zostają); v11 na Cloud Run
    pod te przykłady; mój wcześniejszy minimalny wzorzec FORMAT 2 (§5) pozostaje jako spis reguł
    parsowania (v11 czyta wsad SEMANTYCZNIE, nie pozycyjnie — obie formy zgodne z promptem).
 
+## STYK: LEWA STRONA / RĘKA ROBOTA (dla sesji Sylwii — koncept przekazany 2026-07-03)
+Odpowiedź na uwagę operatorki „miniatura streamlita się nie nadaje". Decyzja właściciela: pliki v11
+NIETKNIĘTE, ramka ZOSTAJE, `policz_v11` odrzucone — zamiast tego **przyciski nad oknami wszczepiają
+operatora i wsad do OBU stron** (do v11 „jak ręka robota", bez zmiany jego kodu).
+STRONA SKRZYNKI (Artur) — GOTOWE: rura `/v11/` (`app/wspolne/v11_rura.py`, w main) serwuje kontener
+pod NASZĄ domeną (HTTP + websocket Streamlita, testy 5/5). Aktywacja na serwerze = env
+`V11_UPSTREAM=<adres kontenera>` + `V11_URL=/v11/` — robi koordynator przy wdrożeniu, gdy toolbar
+gotowy (albo wcześniej na życzenie, żebyś miała `/v11/` do testów — poproś wpisem).
+STRONA SYLWII — DO ZBUDOWANIA (Twój pas, w `app/bestchudy/`):
+- Toolbar NAD oboma oknami: „wskaż operatora" (lista) + „pobierz kolejny case" (styk `daj_sprawe`).
+- CHUDY: parametry wchodzą wprost (masz już `policz_chudego`).
+- V11 w ramce: gdy `V11_URL` zaczyna się od `/` (ta sama domena → dostęp do `iframe.contentWindow/
+  Document` DOZWOLONY), Twój JS: (a) na ekranie logowania v11 wpisuje wskazanego operatora i loguje,
+  (b) wkleja `wsad_panel` w pole „wsad odwrotny" v11 i zatwierdza — natywnie, zero zmian w v11.
+- Selektory pól logowania i „wsad odwrotny" v11 rozpoznajesz Ty (znasz apkę streamlitową); jeśli WS
+  Streamlita utrudni symulację wpisywania — zgłoś, dołożę po stronie rury co trzeba.
+CEL: obie strony ~równa liczba kliknięć. Wyjścia obu stron dalej za zaworem/klikiem (bez zmian).
+WDROŻENIE: całość lewej strony wdrażamy, gdy Twój toolbar gotowy (koordynator deployuje z `main`).
+
 ## STYKI / KONTRAKTY (interfejsy między pasami — TU pilnujemy spójności)
 - **Odbiór (brama→nas):** `brama_wa.py` zapisuje przychodzące do Firestore `szt_wa_inbox`
   z polem `channel` (whatsapp/email/eBay) + sender/text/ts/raw. To źródło kontekstu dla automatu.
