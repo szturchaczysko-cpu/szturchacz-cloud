@@ -171,8 +171,10 @@ chudy autonomiczny, ale podgląd + historia per case zostają); v11 na Cloud Run
    parsowania (v11 czyta wsad SEMANTYCZNIE, nie pozycyjnie — obie formy zgodne z promptem).
 
 ## STYK: LEWA STRONA / RĘKA ROBOTA
-**STATUS: W KOMENTARZU — komentarz sesji (PR #10) + GŁOS SYLWII-CZŁOWIEKA DOSTARCZONY
-(2026-07-03, odpowiedzi na pytania 1-3 niżej). NIE KODOWAĆ do ZATWIERDZONE.**
+**STATUS: ZATWIERDZONE (właściciel, 2026-07-03) — MOŻNA KODOWAĆ.** Głos Sylwii przyjęty w całości
+(przepływ 2 przycisków, hasło = opcja A: raz przy wyborze operatora, pamięć do zamknięcia karty,
++3 wygody na pasie Sylwii). Rura /v11/ AKTYWOWANA na serwerze (V11_UPSTREAM + V11_URL=/v11/) —
+próba techniczna i toolbar = pas Sylwii; styki daj_operatorow/daj_sprawe(grupa=) już na main.
 
 **WERSJA DLA SYLWII (po ludzku, do pokazania jej w oknie):**
 Na ekranie porównywarki, nad oboma oknami, pojawią się dwa przyciski: „WSKAŻ OPERATORA"
