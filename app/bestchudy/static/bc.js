@@ -85,6 +85,92 @@
     }
   });
 
+  // --- FEED: sprawy z wieżowczyka (B3) ----------------------------------------------
+  function uzyjSprawy(s) {
+    if (!s.ma_karte) {
+      $("feed-status").textContent = "Podajnik nie zwrócił pełnej karty dla " + (s.nrzam || "?") +
+        " — wsad uzupełnij ręcznie. Streszczenie: " + (s.opis || "(brak)");
+      return;
+    }
+    $("wsad-panel").value = s.wsad_panel;
+    $("koperta").value = s.koperta_tekst || "";
+    $("tag").value = ""; // tag siedzi już w karcie — drugi raz by się zdublował
+    $("rolka").value = ""; // rolka poprzedniej sprawy nie może skleić się z nową
+    // NOWA sprawa = czysty stan chudego; bez tego „Zapisz" mógłby sparować werdykty nowej
+    // sprawy z odpowiedzią chudego dla POPRZEDNIEJ (sfałszowany rekord badawczy).
+    historia = [];
+    snapshotWsadu = null;
+    ostatniPrompt = "";
+    $("chudy-rozmowa").textContent = "";
+    resetOceny();
+    odswiezPodglad();
+    $("feed-lista").hidden = true;
+    $("feed-status").textContent = "Wciągnięto sprawę " + (s.nrzam || "?") +
+      " (tag jest w karcie; pole TAG zostaw puste). Teraz: KOPIUJ WSAD → v11, POLICZ → chudy.";
+  }
+
+  function pokazSprawy(sprawy) {
+    const kontener = $("feed-lista");
+    kontener.textContent = "";
+    sprawy.forEach((s) => {
+      const div = document.createElement("div");
+      div.className = "bc-pozycja";
+      const glowa = document.createElement("div");
+      glowa.className = "bc-pozycja-glowa";
+      const opis = document.createElement("span");
+      opis.textContent = (s.nrzam || "?") + " · " + (s.data || "?") + " · " + (s.kraj || "?") +
+        (s.ma_karte ? "" : " · (bez pełnej karty)");
+      const guzik = document.createElement("button");
+      guzik.type = "button";
+      guzik.className = "btn btn--small";
+      guzik.textContent = "Użyj";
+      guzik.addEventListener("click", () => uzyjSprawy(s));
+      glowa.appendChild(opis);
+      glowa.appendChild(guzik);
+      div.appendChild(glowa);
+      const meta = document.createElement("span");
+      meta.className = "meta";
+      meta.textContent = s.opis || "";
+      div.appendChild(meta);
+      kontener.appendChild(div);
+    });
+    kontener.hidden = !sprawy.length;
+  }
+
+  async function pobierzSprawy(zam) {
+    const guziki = [$("btn-nastepne"), $("btn-po-numerze")];
+    if (guziki[0].disabled) return; // blokada in-flight jak przy pozostałych przyciskach
+    guziki.forEach((g) => { g.disabled = true; });
+    $("feed-status").textContent = "Pobieram z wieżowczyka…";
+    try {
+      const w = await api("/bestchudy/api/sprawy?limit=10" + (zam ? "&zam=" + encodeURIComponent(zam) : ""));
+      if (!w.ok) {
+        $("feed-lista").hidden = true;
+        $("feed-status").textContent = w.message || "Podajnik niedostępny.";
+        return;
+      }
+      if (!w.sprawy.length) {
+        $("feed-lista").hidden = true;
+        $("feed-status").textContent = zam ? "Nie znaleziono sprawy " + zam + "." : "Podajnik pusty.";
+        return;
+      }
+      if (w.sprawy.length === 1) { uzyjSprawy(w.sprawy[0]); return; }
+      pokazSprawy(w.sprawy);
+      $("feed-status").textContent = "Wybierz sprawę z listy (najnowsze na górze).";
+    } finally {
+      guziki.forEach((g) => { g.disabled = false; });
+    }
+  }
+
+  function poNumerze() {
+    const zam = $("feed-zam").value.trim();
+    if (!/^\d{4,9}$/.test(zam)) { $("feed-status").textContent = "Numer zamówienia to 4-9 cyfr."; return; }
+    pobierzSprawy(zam);
+  }
+  $("btn-nastepne").addEventListener("click", () => pobierzSprawy(""));
+  $("btn-po-numerze").addEventListener("click", poNumerze);
+  $("feed-zam").addEventListener("keydown", (ev) => { if (ev.key === "Enter") poNumerze(); });
+
   // --- Chudy: rozmowa ------------------------------------------------------------
   let historia = [];        // [{role:"user"|"model", content}] — role jak w silniku skrzynki
   let ostatniPrompt = "";

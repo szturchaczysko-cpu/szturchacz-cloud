@@ -27,7 +27,15 @@
     <!-- ═══ ZAKŁADKA: PORÓWNYWARKA ═══ -->
     <section class="bc-ekran" data-ekran="porownywarka">
       <div class="card">
-        <div class="card__title">Sprawa (ręczne wklejanie — do czasu styku FEED z wsad_panel)</div>
+        <div class="card__title">Sprawa</div>
+        <div class="bc-przyciski bc-feed">
+          <button id="btn-nastepne" class="btn" type="button">⏭️ Z wieżowczyka (najnowsze)</button>
+          <input id="feed-zam" class="text-input bc-zam" inputmode="numeric"
+                 placeholder="nrZam" aria-label="Numer zamówienia">
+          <button id="btn-po-numerze" class="btn btn--small" type="button">🔎 Po numerze</button>
+          <span id="feed-status" class="meta">…albo wklej wsad ręcznie poniżej.</span>
+        </div>
+        <div id="feed-lista" class="list" hidden></div>
         <div class="bc-tryby" id="bc-tryby">
           {% for t in tryby %}
           <button class="chip{% if loop.first %} is-active{% endif %}" data-tryb="{{ t }}" type="button">{{ t }}</button>

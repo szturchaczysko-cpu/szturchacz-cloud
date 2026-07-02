@@ -89,6 +89,43 @@ async def statyczne(plik: str):
     return FileResponse(os.path.join(_KATALOG, "static", plik), media_type=_STATIC[plik])
 
 
+# --- FEED (styk daj-sprawę; B3 — koniec ręcznego wklejania) --------------------------
+@router.get("/api/sprawy")
+async def sprawy(request: Request):
+    op, blad = _brama_api(request)
+    if blad:
+        return blad
+    q = request.query_params
+    zam = str(q.get("zam") or "").strip()
+    if zam and not logika.poprawny_zam(zam):
+        return JSONResponse({"ok": False, "message": "Numer zamówienia to 4-9 cyfr."}, status_code=400)
+    try:
+        limit = int(q.get("limit") or 10)
+    except ValueError:
+        limit = 10
+    limit = max(1, min(limit, 50))
+
+    from ..wspolne import styki  # fasada
+    wynik = styki.daj_sprawe(zam=zam, limit=limit)
+    if not wynik.get("ok"):
+        # wejścia zwalidowane wyżej → ok:False = źródło niedostępne (upstream)
+        return JSONResponse(wynik, status_code=502)
+    sprawy_ui = []
+    for s in wynik.get("sprawy") or []:
+        wsad_panel = str(s.get("wsad_panel") or "")
+        sprawy_ui.append({
+            "nrzam": str(s.get("zknzamnr") or ""),
+            "data": str(s.get("data_zama") or ""),
+            "kraj": str(s.get("kaCountry") or s.get("kraj") or ""),
+            "opis": str(s.get("suchy_wsad") or ""),
+            "wsad_panel": wsad_panel,
+            # Tag siedzi JUŻ w wsad_panel (wzorce §5.1) — pole TAG w UI zostaje puste.
+            "koperta_tekst": logika.zloz_koperte(s.get("koperta")),
+            "ma_karte": bool(wsad_panel.strip()),
+        })
+    return {"ok": True, "sprawy": sprawy_ui, "liczba": len(sprawy_ui)}
+
+
 # --- Chudy (prawa strona) ----------------------------------------------------------
 @router.post("/api/policz")
 async def policz(request: Request):
