@@ -21,6 +21,7 @@
 
 .bc-przyciski { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; margin-top: var(--space-2); }
 .bc-podglad { margin-top: var(--space-2); }
+.bc-rolka-zwin .text-input { margin-top: var(--space-1); }
 .bc-podglad .codeblock { max-height: 260px; overflow: auto; white-space: pre-wrap; }
 
 .bc-split { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); align-items: start; }

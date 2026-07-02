@@ -246,6 +246,25 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [SYLWIA] **UWAGI OPERATORKI z pracy na żywym ekranie** (PR `bestchudy/uwagi-operatorki`):
+  (1) OD RĘKI (mój pas): podgląd sklejki OTWARTY domyślnie („najlepszy obraz sprawy" — Sylwia),
+  pole rolki schowane za rozwijką (rzadko potrzebne). Werdykty i „Wyślij do silnika" — ocenione OK.
+  (2) **PROŚBA DO ARTURA — PROMPT CHUDEGO NA v1_11:** Sylwia zgłasza jako błąd, że chudy liczy na
+  „v1_9 (wbudowany)" (fallback `deps.active_prompt_text`). Decyzja zespołu 2026-06-30 = v1_11.
+  Panel przyjmuje `prompt_url` — wskaż plik v1_11 (jest w repo: `kontener_v11/szturchacz_vnext_v1_11.txt`)
+  albo dołóż go jako wbudowany (Twoje pliki: app/prompts + panel).
+  (3) **DO DECYZJI WŁAŚCICIELA — LEWA STRONA PORÓWNYWARKI:** Sylwia po pracy na żywo: miniatura
+  streamlita w ramce się NIE nadaje (to stary ekran, z którego rezygnujemy) — lewa strona ma być
+  pusta jak prawa, wsad ZAŁĄCZANY dla v11 tak samo jak dla chudego, a w panelu ma się pojawiać
+  ROZWIĄZANIE sprawy od v11. To odwraca doprecyzowanie właściciela (iframe + KOPIUJ WSAD), więc
+  NIE koduję bez zgody (bramka 4). PROPOZYCJA WIERNA DUCHOWI as-is: wywołać prompt v1_11 DOKŁADNIE
+  tak, jak robił to STARY AUTOPILOT w starym Wieżowcu (system = prompt v1_11 + PARAMETRY STARTOWE,
+  wsad jako wiadomość user, temperatura 0.0) — to ścieżka ISTNIEJĄCA w starym świecie (autopilot
+  liczył v11 bez ekranu od zawsze), nie przepisywanie silnika. Kontener v11 ZOSTAJE (produkcyjna
+  praca + wzorzec); ramka w porównywarce znika albo zostaje jako opcja. WYMAGA STYKU po stronie
+  Artura: `policz_v11(wsad, historia)` w fasadzie (jak `policz_chudego`, ale system = v1_11 z pliku
+  w repo zamiast aktywnego promptu panelu). Wyjścia obu stron bez zmian za zaworem/klikiem.
+  Właściciel klika; po zgodzie spinam lewą stronę w jeden wieczór.
 - 2026-07-03: **KRZYSIEK BIERZE CAŁY BACKLOG BRAMY (5-7 dni):** message-id+timestamp źródła
   (WA i email), kierunek IN/OUT, załączniki WA+IMAP(+eBay po naszym TAK), statusy jako endpoint
   PULL (nasz follow-up: poller), BUFOR niedostarczonych + ponowienia N dni (potwierdził: dziś

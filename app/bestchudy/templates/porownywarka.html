@@ -52,13 +52,14 @@
           </label>
         </div>
         <div class="bc-wsad-siatka">
-          <label class="bc-pole">TAG (opcjonalnie)
+          <label class="bc-pole">TAG (opcjonalnie — przy sprawie z podajnika siedzi już w karcie)
             <input id="tag" class="text-input" placeholder="c#:…;pz=…;next=…">
           </label>
-          <label class="bc-pole">ROLKA z kanału (opcjonalnie)
-            <textarea id="rolka" class="text-input" rows="3"
+          <details class="bc-pole bc-rolka-zwin">
+            <summary class="meta">ROLKA z kanału (rzadko potrzebna — rozwiń)</summary>
+            <textarea id="rolka" class="text-input" rows="3" aria-label="Rolka z kanału"
               placeholder="rozmowa MY/KLIENT wklejona ręcznie (albo później styk daj-rolkę)"></textarea>
-          </label>
+          </details>
         </div>
         <div class="bc-przyciski">
           <button id="btn-kopiuj" class="btn btn--primary" type="button">📋 KOPIUJ WSAD (dla v11)</button>
@@ -66,7 +67,8 @@
           <span id="nrzam-znacznik" class="badge">NrZam: —</span>
           <span id="wsad-status" class="meta"></span>
         </div>
-        <details class="bc-podglad"><summary class="meta">Podgląd sklejki (to dostają OBIE strony)</summary>
+        <!-- Otwarty domyślnie — uwaga operatorki (Sylwia, 2026-07-03): „najlepszy obraz sprawy" -->
+        <details class="bc-podglad" open><summary class="meta">Podgląd sklejki (to dostają OBIE strony)</summary>
           <pre id="sklejka-podglad" class="codeblock"></pre>
         </details>
       </div>
