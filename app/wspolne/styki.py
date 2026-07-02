@@ -29,10 +29,11 @@ KANALY = ("whatsapp", "email", "ebay", "forum")
 
 
 # --- 1. FEED -------------------------------------------------------------------
-def daj_sprawe(od: str = "", do: str = "", zam: str = "", limit: int = 50) -> dict:
-    """Surowy wsad spraw (wieżowczyk). Zwraca {ok, sprawy:[{...,'suchy_wsad'}]}."""
+def daj_sprawe(od: str = "", do: str = "", zam: str = "", limit: int = 50, grupa: str = "") -> dict:
+    """Surowy wsad spraw (wieżowczyk). `grupa` (DE/FR/UKPL) = tylko sprawy działu operatora
+    (prośba-styk Sylwii, PR #9). Zwraca {ok, sprawy:[{..., suchy_wsad, wsad_panel, koperta}]}."""
     from ..wiezowczyk import podajnik
-    return podajnik.pobierz(od, do, zam, limit)
+    return podajnik.pobierz(od, do, zam, limit, grupa=grupa)
 
 
 # --- 2. ROLKA ------------------------------------------------------------------
@@ -49,12 +50,21 @@ def daj_rolke(zam: str = "", thread_id: str = "", limit: int = 500) -> dict:
 
 # --- 3. SILNIK CHUDEGO -----------------------------------------------------------
 def policz_chudego(suchy_wsad: str, rolka: str = "",
-                   historia: Optional[List[dict]] = None) -> dict:
-    """Policz chudego na sprawie: system = aktywny prompt (panel), wejście = suchy wsad
-    (+rolka z kanału, jeśli jest). `historia` = dotychczasowa rozmowa [{role, content}]."""
+                   historia: Optional[List[dict]] = None,
+                   operator: str = "", grupa: str = "", tryb: str = "") -> dict:
+    """Policz chudego na sprawie: system = aktywny prompt (panel) + PARAMETRY STARTOWE jak u v11
+    (prośba-styk Sylwii, PR #9: delegacje telefonów wymagają operatora/grupy/trybu w systemie).
+    Bez operatora/grupy — parametry pomijane (zachowanie jak dotąd). `historia` = [{role, content}]."""
     if not str(suchy_wsad or "").strip():
         return {"ok": False, "message": "Pusty wsad."}
+    from . import ai
     system = deps.active_prompt_text()
+    if operator or grupa or tryb:
+        import time as _t
+        system += ai.build_start_params(operator=operator or "operator",
+                                        data=_t.strftime("%d.%m"),
+                                        grupa=grupa or "DE",
+                                        tryb=tryb or "standard")
     wejscie = str(suchy_wsad).strip()
     if rolka:
         wejscie += "\n\n[ROLKA Z KANAŁU]\n" + str(rolka).strip()
@@ -64,6 +74,20 @@ def policz_chudego(suchy_wsad: str, rolka: str = "",
     except Exception as e:  # noqa: BLE001 — silnik nie może wywalać ekranu
         return {"ok": False, "message": f"Silnik chudego niedostępny ({type(e).__name__})."}
     return {"ok": True, "odpowiedz": odpowiedz, "prompt": deps.active_prompt_label()}
+
+
+# --- 3a. OPERATORZY (prośba-styk Sylwii, PR #9) ----------------------------------
+def daj_operatorow() -> dict:
+    """Lista operatorów do selektora (pid, imię/label, grupa DE/FR/UKPL, tel, języki).
+    Źródło = magazyn operatorów (edycja: zaplecze → Operatorzy; tam też przepinanie grup)."""
+    try:
+        osoby = deps.operators.list()
+    except Exception as e:  # noqa: BLE001
+        return {"ok": False, "message": f"Magazyn operatorów niedostępny ({type(e).__name__})."}
+    return {"ok": True, "operatorzy": [
+        {"pid": o.get("pid"), "label": o.get("label") or o.get("pid"),
+         "grupa": o.get("grupa") or "", "tel": bool(o.get("tel")),
+         "jezyki": o.get("jezyki") or []} for o in osoby]}
 
 
 # --- 4. WYJŚCIE (zawór) ----------------------------------------------------------

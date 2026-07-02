@@ -35,11 +35,23 @@ def _waliduj(od: str, do: str, zam: str, limit: int) -> Tuple[str, str, str, int
     return od, do, zam, max(1, min(int(limit or 50), _LIMIT_MAX)), None
 
 
-def _sql(od: str, do: str, zam: str, limit: int) -> str:
+# Mapowanie GRUPA operatorska → filtr działu w bazie (sonda 2026-07-03: kraj ∈ {DE, PL, INNE};
+# FR/UK nie mają własnego kodu — filtrujemy pełną nazwą kraju z kaCountry). Mapowanie EMPIRYCZNE v1,
+# do potwierdzenia przez stronę Sylwii na realnych sprawach FR/UK.
+_GRUPY_SQL = {
+    "DE": "p.kraj = 'DE'",
+    "FR": "p.kaCountry = 'France'",
+    "UKPL": "(p.kraj = 'PL' or p.kaCountry in ('United Kingdom', 'Great Britain', 'England', 'Ireland'))",
+}
+
+
+def _sql(od: str, do: str, zam: str, limit: int, grupa: str = "") -> str:
     # Wartości przeszły regex-whitelist (same cyfry/format daty) — wstawienie jest bezpieczne.
     # Widok PEŁNY (v_austachStatus, nie Prosty): ma kaCountry/lindexy/etapy/doręczenia/listy/eBay —
     # komplet pod WSAD PANEL wg wzorców produkcyjnych Sylwii (PLAN.md §5.1).
     warunki = []
+    if grupa:
+        warunki.append(_GRUPY_SQL[grupa])  # klucz zwalidowany w pobierz() (whitelista)
     if zam:
         warunki.append(f"p.zknzamnr = {zam}")
     if od:
@@ -149,15 +161,19 @@ def suchy_wsad(r: dict) -> str:
     return " | ".join(czesci)
 
 
-def pobierz(od: str = "", do: str = "", zam: str = "", limit: int = 50) -> dict:
+def pobierz(od: str = "", do: str = "", zam: str = "", limit: int = 50, grupa: str = "") -> dict:
     """Suchy wsad spraw: najnowsze w zakresie dat albo konkretny nrZam (odwrotny zam).
-    Zwraca {ok, sprawy:[{...pola, suchy_wsad}]} albo {ok:False, message} gdy źródło niedostępne."""
+    `grupa` (DE/FR/UKPL) zawęża do działu operatora (prośba-styk Sylwii, PR #9).
+    Zwraca {ok, sprawy:[{...pola, suchy_wsad, wsad_panel, koperta}]} albo {ok:False, message}."""
     od, do, zam, limit, blad = _waliduj(od, do, zam, limit)
     if blad:
         return {"ok": False, "message": blad}
+    grupa = (grupa or "").strip().upper()
+    if grupa and grupa not in _GRUPY_SQL:
+        return {"ok": False, "message": f"Nieznana grupa: {grupa!r} (DE / FR / UKPL)."}
     from ..wspolne import klient_baz
     try:
-        wiersze: List[dict] = klient_baz.czytaj("STEEPC", _sql(od, do, zam, limit), limit=limit)
+        wiersze: List[dict] = klient_baz.czytaj("STEEPC", _sql(od, do, zam, limit, grupa), limit=limit)
     except Exception as e:  # noqa: BLE001 — brak brokera/tunelu nie może wywalać zaplecza
         return {"ok": False, "message": f"Źródło spraw niedostępne ({type(e).__name__}). "
                                         "Sprawdź ONPREM_DB_BROKER_URL (prod) / tunel (dev)."}

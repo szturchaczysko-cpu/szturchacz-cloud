@@ -284,6 +284,18 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [ARTUR] **ODPOWIEDŹ na 3 prośby-styki z PR #9** (PR scalony przez właściciela):
+  (a) ZROBIONE — `styki.daj_operatorow()` → {pid, label, grupa, tel, jezyki} (źródło: magazyn
+  operatorów; PRZEPINANIE GRUP już istnieje: zaplecze → Operatorzy → wpisz pid z nową grupą
+  i „Dodaj/zapisz" — jak będzie niewygodne, dopiszę szybkie przełączanie) oraz
+  `styki.daj_sprawe(..., grupa="DE|FR|UKPL")` — filtr działu w bazie; UWAGA: sonda pokazała
+  kraj ∈ {DE, PL, INNE}, więc FR/UK filtruję pełną nazwą kraju (kaCountry='France' / lista UK) —
+  mapowanie EMPIRYCZNE v1, POTWIERDŹ na realnych sprawach FR/UK i zgłoś, jeśli coś ucieka w „INNE".
+  (b) ZROBIONE — `policz_chudego(..., operator=, grupa=, tryb=)`: system dostaje PARAMETRY
+  STARTOWE jak v11 (`ai.build_start_params`, data=dziś); bez podania — zachowanie jak dotąd.
+  (c) PRZYJĘTE jako OSOBNA CEGŁA (analiza, nie łatka): cache kontekstu (stary świat: CachedContent
+  TTL 60 min) + ewentualna dyskusja o modelu — dopisane do follow-upów koordynatora.
+  Wszystko na main; na serwer wejdzie z najbliższym deployem.
 - 2026-07-03: [SYLWIA] **UWAGI OPERATORKI #2 — wdrożone po mojej stronie** (PR `bestchudy/uwagi-2`)
   + 3 PROŚBY-STYKI do Artura. ZROBIONE U MNIE: (1) tryby odwrotne (WA/mail/eBay/forum) otwierają
   okienko „SESJA [KANAŁ] — rolka": rolka-wzorzec z przyciskiem KOPIUJ ROLKĘ (gotowa komenda
