@@ -31,10 +31,12 @@ _STATIC = {"bc.css": "text/css; charset=utf-8", "bc.js": "text/javascript; chars
 
 
 def _v11_url() -> str:
-    # RURA Artura (V11_UPSTREAM): kontener pod NASZĄ domeną — ta sama domena = fundament
-    # „ręki robota" (nasz JS może sięgać do okna v11). Fallback: stary bezpośredni V11_URL.
-    if os.environ.get("V11_UPSTREAM", "").strip():
-        return "/v11/?embed=true"
+    # O źródle ramki decyduje WYŁĄCZNIE V11_URL — jawny przełącznik koordynatora
+    # (bezpośredni adres kontenera DZIŚ; `/v11/` = rura, gdy kontrakt ręki robota dojdzie
+    # do ZATWIERDZONE i rura przejdzie próbę techniczną).
+    # LEKCJA z incydentu 2026-07-03: automatyczne preferowanie rury po samym V11_UPSTREAM
+    # przełączyło produkcyjną ramkę na nieprzetestowaną przelotkę i v11 „zniknęło" — ramka
+    # nie może zmieniać źródła bez świadomej decyzji człowieka.
     url = os.environ.get("V11_URL", "").strip()
     if url and "embed=" not in url:
         url += ("&" if "?" in url else "?") + "embed=true"
