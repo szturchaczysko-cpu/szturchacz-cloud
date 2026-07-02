@@ -1,0 +1,149 @@
+"""
+Logika porównywarki BESTCHUDY — czysta (bez FastAPI i bez widoku).
+
+Twarde reguły rozpisu (COORDYNACJA → PODZIAŁ):
+- werdykt PER STRONA 🔴/🟢, ale 🟢🟢 ZABRONIONE — operator musi wskazać lepszą stronę;
+- czerwony werdykt wymaga komentarza odrzutu;
+- sklejka wsadu (panel+koperta+tag) jest JEDNA i ta sama dla v11 i chudego (PLAN.md §4-§5) —
+  dlatego za długie pola ODRZUCAMY (400), nigdy nie tniemy po cichu (cichy nóż = nieuczciwe
+  porównanie, którego nikt nie widzi).
+"""
+from __future__ import annotations
+
+import re
+from datetime import datetime, timezone
+from uuid import uuid4
+
+TRYBY = ("standard", "odwrotny_wa", "mail", "ebay", "forum")
+WERDYKTY = ("zielony", "czerwony")
+
+# Lookaround jak w archiwum (wzorzec domeny) — nie wyłuskuj 7 cyfr ze środka dłuższego ciągu.
+_NRZAM = re.compile(r"(?<!\d)(\d{5,7})(?!\d)")
+_DZIEN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+# Cięcie krawędziowe zgodne z JS String.trim() (obejmuje BOM/U+FEFF, którego str.strip() nie tnie).
+_KRAWEDZIE = re.compile(r"^[\s﻿]+|[\s﻿]+$")
+
+LIMIT_TEKSTU = 20000   # panel / koperta / rolka
+LIMIT_TAG = 2000
+LIMIT_SKLEJKI = 45000  # rekord porównania: pełna sklejka (20k+20k+2k + separatory) musi się zmieścić
+
+
+def oczysc(tekst) -> str:
+    """Trim krawędziowy 1:1 z JS .trim() (razem z BOM) — lustra muszą ciąć tak samo."""
+    return _KRAWEDZIE.sub("", str(tekst or ""))
+
+
+def przytnij(tekst, limit: int = LIMIT_TEKSTU) -> str:
+    return oczysc(tekst)[:limit]
+
+
+def wyluskaj_nrzam(tekst) -> str:
+    m = _NRZAM.search(str(tekst or ""))
+    return m.group(1) if m else ""
+
+
+def sklej_wsad(wsad_panel, koperta="", tag="") -> str:
+    """Sklejka „KOPIUJ WSAD" (kontrakt PLAN.md §5): panel + koperta + tag, puste części pomijane.
+    BEZ limitów — długość waliduje wsad_za_dlugi() i odrzuca, zamiast ciąć po cichu."""
+    czesci = [oczysc(wsad_panel), oczysc(koperta), oczysc(tag)]
+    return "\n\n".join([c for c in czesci if c])
+
+
+def wsad_za_dlugi(wsad_panel, koperta="", tag="") -> str:
+    """Komunikat błędu, gdy pola przekraczają limity (pusty string = OK)."""
+    if len(oczysc(wsad_panel)) > LIMIT_TEKSTU or len(oczysc(koperta)) > LIMIT_TEKSTU:
+        return ("Wsad za długi (panel i koperta maks. 20000 znaków każde) — porównanie wymaga "
+                "PEŁNEJ, identycznej sklejki dla obu stron, więc nie tniemy po cichu.")
+    if len(oczysc(tag)) > LIMIT_TAG:
+        return "Tag za długi (maks. 2000 znaków)."
+    return ""
+
+
+def poprawny_dzien(dzien) -> bool:
+    return bool(_DZIEN.match(str(dzien or "")))
+
+
+def dzis() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+
+def waliduj_werdykty(w_v11, w_chudy, komentarz="") -> str:
+    """Zwraca komunikat błędu albo pusty string, gdy werdykty są poprawne."""
+    for w in (w_v11, w_chudy):
+        if w not in WERDYKTY:
+            return "Werdykt OBU stron musi być ustawiony: zielony albo czerwony."
+    if w_v11 == "zielony" and w_chudy == "zielony":
+        return "Podwójny zielony zabroniony — wskaż, która strona była LEPSZA (rozpis koordynatora)."
+    if "czerwony" in (w_v11, w_chudy) and not str(komentarz or "").strip():
+        return "Czerwony werdykt wymaga komentarza odrzutu."
+    return ""
+
+
+def _bezpieczny_int(wartosc) -> int:
+    try:
+        return max(0, int(wartosc))
+    except (TypeError, ValueError):
+        return 0
+
+
+def nowe_porownanie(d: dict, operator: dict) -> dict:
+    # Router waliduje długości i odrzuca 400 — przytnij niżej to tylko pas bezpieczeństwa.
+    wsad = przytnij(d.get("wsad"), LIMIT_SKLEJKI)
+    teraz = datetime.now(timezone.utc)
+    tryb = d.get("tryb")
+    return {
+        "id": uuid4().hex,
+        "nrzam": wyluskaj_nrzam(wsad),
+        "tryb": tryb if tryb in TRYBY else "standard",
+        "wsad": wsad,
+        "rolka": przytnij(d.get("rolka")),
+        "chudy_odpowiedz": przytnij(d.get("chudy_odpowiedz"), 40000),
+        "chudy_prompt": przytnij(d.get("chudy_prompt"), 200),
+        "tury_chudego": _bezpieczny_int(d.get("tury_chudego")),
+        "werdykt_v11": d.get("werdykt_v11"),
+        "werdykt_chudy": d.get("werdykt_chudy"),
+        "komentarz": przytnij(d.get("komentarz"), 4000),
+        "operator_pid": operator.get("pid", ""),
+        "operator_label": operator.get("label") or "",
+        "created_at": teraz.isoformat(),
+        "dzien": teraz.strftime("%Y-%m-%d"),
+    }
+
+
+def czy_odrzut(rec: dict) -> bool:
+    return "czerwony" in (rec.get("werdykt_v11"), rec.get("werdykt_chudy"))
+
+
+def liczby_dnia(recs) -> dict:
+    """Podsumowanie dnia do oceny na końcu sesji."""
+    return {
+        "porownania": len(recs),
+        "v11_zielone": sum(1 for r in recs if r.get("werdykt_v11") == "zielony"),
+        "chudy_zielone": sum(1 for r in recs if r.get("werdykt_chudy") == "zielony"),
+        "odrzuty": sum(1 for r in recs if czy_odrzut(r)),
+    }
+
+
+def waliduj_historie(historia) -> str:
+    """Historia rozmowy z chudym: maks 40 wpisów {role: user|model, content: str ≤65000}."""
+    if len(historia) > 40:
+        return "Historia za długa (maks. 40 wpisów)."
+    for m in historia:
+        if not (isinstance(m, dict) and m.get("role") in ("user", "model")
+                and isinstance(m.get("content"), str) and len(m["content"]) <= 65000):
+            return "Nieprawidłowy wpis w historii (role: user/model, content: tekst do 65000 znaków)."
+    return ""
+
+
+def nowa_ocena(d: dict, operator: dict, liczby: dict) -> dict:
+    teraz = datetime.now(timezone.utc)
+    dzien = d.get("dzien") if poprawny_dzien(d.get("dzien")) else teraz.strftime("%Y-%m-%d")
+    return {
+        "id": uuid4().hex,
+        "dzien": dzien,
+        "uwagi": przytnij(d.get("uwagi"), 8000),
+        "liczby": liczby,
+        "operator_pid": operator.get("pid", ""),
+        "operator_label": operator.get("label") or "",
+        "created_at": teraz.isoformat(),
+    }
