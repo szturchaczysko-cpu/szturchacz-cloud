@@ -47,7 +47,8 @@ _GRUPY_SQL = {
 
 def _sql(od: str, do: str, zam: str, limit: int, grupa: str = "") -> str:
     # Wartości przeszły regex-whitelist (same cyfry/format daty) — wstawienie jest bezpieczne.
-    # Widok PEŁNY (v_austachStatus, nie Prosty): ma kaCountry/lindexy/etapy/doręczenia/listy/eBay —
+    # Widok _mailTel (agent baz 2026-07-03): jak pełny, ALE wiersz-per-TELEFON klienta — panel
+    # pokazuje WSZYSTKIE warianty numeru; dedup+zbiórka telefonów niżej w pobierz(). Kolumny: —
     # komplet pod WSAD PANEL wg wzorców produkcyjnych Sylwii (PLAN.md §5.1).
     warunki = []
     if grupa:
@@ -59,8 +60,9 @@ def _sql(od: str, do: str, zam: str, limit: int, grupa: str = "") -> str:
     if do:
         warunki.append(f"p.data_zama <= '{do}'")
     where = ("where " + " and ".join(warunki)) if warunki else ""
+    nadmiar = min(limit * 8, 600)  # widok dubluje wiersze per telefon klienta — bierzemy z zapasem
     return f"""
-select top {limit}
+select top {nadmiar}
        p.zknzamnr, p.data_zama, p.zknusertw, p.klient_nazwa, p.kakMail, p.ktTelNr,
        p.kraj, p.kaCountry, p.rodzaj_zama, p.zamRekl,
        p.czy_austauch_zakonczony, p.ReklFlag, p.KurFlag, p.Zoltek,
@@ -69,7 +71,7 @@ select top {limit}
        p.ua_ups_TrackingNr, p.zwneTrackingNumber, p.upsFirmaKurierska,
        p.EbayLogin, p.buyerNick, p.Data_wyslania_m,
        p.austauch_id, t.ContentTag
-from dbo.v_austachStatus p
+from dbo.v_austachStatus_mailTel p
 left join SZTURCHACZ.dbo.ItemsTag t on t.DokId = p.austauch_id and t.DokTyp = 7
 {where}
 order by p.data_zama desc, p.zknzamnr desc
@@ -90,7 +92,7 @@ order by [date]
 
 # Słownik kurierów odczytany EMPIRYCZNIE z wzorców produkcyjnych (381879=1=UPS, 381865=5=FEDEX).
 # Inne wartości → surowa liczba; mapę uzupełnia strona Sylwii/panel, gdy wypłynie nowy kurier.
-_KURIERZY = {1: "UPS", 5: "FEDEX"}
+_KURIERZY = {1: "UPS", 5: "FEDEX", 2: "SCHENKER"}  # potwierdzone przez agenta baz (2026-07-03)
 
 
 def _data(v) -> str:
@@ -127,7 +129,7 @@ def wsad_panel(r: dict) -> str:
     biezacy = "Nie wysłano żadnego maila" if not r.get("Data_wyslania_m") \
         else f"Mail wysłany {_data(r.get('Data_wyslania_m'))}"
     kolejny = f"Etap {r.get('stage')} ({'Aktywny' if r.get('active') else 'Nieaktywny'})" \
-        if r.get("stage") is not None else ""
+        if r.get("stage") is not None else "Jeszcze nie podjęto (Nie aktywny)"
     czesci.append(f"\t{biezacy} \t\t{kolejny} \t{_data(r.get('date'))} \t{_data(r.get('dataZamKur'))}"
                   f"\t{r.get('reklamacja') or 'brak'} \t{_data(r.get('ua_ups_StatusDate'))}")
     if r.get("ua_ups_StatusDesc"):
@@ -177,6 +179,25 @@ def pobierz(od: str = "", do: str = "", zam: str = "", limit: int = 50, grupa: s
     except Exception as e:  # noqa: BLE001 — brak brokera/tunelu nie może wywalać zaplecza
         return {"ok": False, "message": f"Źródło spraw niedostępne ({type(e).__name__}). "
                                         "Sprawdź ONPREM_DB_BROKER_URL (prod) / tunel (dev)."}
+    # PUŁAPKA Z ATLASU (agent baz, 2026-07-03): widok dubluje wiersze per TELEFON klienta —
+    # sklejamy do jednej sprawy, a telefony zbieramy wszystkie po przecinku (jak w panelu).
+    po_zamie: dict = {}
+    kolejnosc: list = []
+    for r in wiersze:
+        z = r.get("zknzamnr")
+        if z not in po_zamie:
+            po_zamie[z] = dict(r)
+            po_zamie[z]["_tel"] = []
+            kolejnosc.append(z)
+        t = str(r.get("ktTelNr") or "").strip()
+        if t and t not in po_zamie[z]["_tel"]:
+            po_zamie[z]["_tel"].append(t)
+    wiersze = []
+    for z in kolejnosc[:limit]:
+        r = po_zamie[z]
+        tel = r.pop("_tel")
+        r["ktTelNr"] = ", ".join(tel)
+        wiersze.append(r)
     # Kopertki (COP#) jednym strzałem dla całej paczki spraw; błąd kopert nie wywala podajnika.
     koperty: dict = {}
     ids = [r.get("austauch_id") for r in wiersze if r.get("austauch_id")]
@@ -211,6 +232,6 @@ if __name__ == "__main__":
                     "ContentTag": "c#:01.07;pz=pz2"})
     assert w == "NrZam: 382576 | DE | KOLEKTORY | REKLAMACJA | z dnia 2026-07-01 | klient: Firma X | tag: c#:01.07;pz=pz2", w
     assert "tag: —" in suchy_wsad({"zknzamnr": 1, "kraj": "DE", "rodzaj_zama": "SKRZYNIE", "data_zama": "2026-01-01"})
-    assert "select top 50" in _sql("", "", "", 50) and "where" not in _sql("", "", "", 50)
+    assert "select top 400" in _sql("", "", "", 50) and "where" not in _sql("", "", "", 50)  # 50*8 nadmiar pod dedup
     assert "p.zknzamnr = 382576" in _sql("", "", "382576", 50)
     print("podajnik.py: sanity OK")

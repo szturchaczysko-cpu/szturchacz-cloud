@@ -335,6 +335,20 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [ARTUR] **WSAD PANELOWY DOMKNIĘTY wg mapowania agenta baz** (sesja BAZY
+  FRANCISZKAŃSKIE zweryfikowała pola na żywym 380895): (1) przełączenie źródła na
+  `v_austachStatus_mailTel` — TYLKO ten widok niesie WSZYSTKIE warianty telefonu klienta
+  (wiersz-per-telefon; pułapka dubli z atlasu ROZBROJONA: dedup po zamie + telefony sklejane po
+  przecinku jak w panelu); (2) etap niepodjęty = „Jeszcze nie podjęto (Nie aktywny)" (jak panel);
+  (3) kurier 2=SCHENKER dopisany (1=UPS, 5=FEDEX potwierdzone). WERYFIKACJA ŻYWA: 380895 =
+  35/35 tokenów zgodnych ze zrzutem panelu (kolejność wariantów tel. wg widoku — semantycznie
+  obojętna); regresja: 381865 identyczna, 381879 różni się WYŁĄCZNIE świeżym tagiem z produkcji.
+  **KOPERTY (wymóg właściciela):** NIE wchodzą do `wsad_panel` — dostęp OSOBNY: pole `koperta`
+  w styku `daj_sprawe` (lista {kto, kiedy z czasem, tresc 1:1}) + sekcja „KOPERTA" w podglądzie
+  wieżowczyka (zaplecze); do v11 składa je strona Sylwii (`zloz_koperte`, format panelu).
+  NOTKA: czas kopertki z bazy bywa o 1h wcześniejszy niż w panelu (strefa serwera?) — do
+  wyjaśnienia; luka „Bieżący etap przy WYSŁANYM mailu" wciąż otwarta (agent też nie domknął —
+  pytanie o VIEW DEFINITION dla artur_ro dopisać do następnej wiadomości do Krzyśka).
 - 2026-07-03: **WŁAŚCICIEL: kafelek OPERATORZY (Wieżowiec-zaplecze) przekazany do pasa SYLWII**
   (zakres plików/fragmentów wypisany w rozpisie bestchudy pkt 2 — wyjątek od „nie dotyka
   wspólnych"). Naturalne domknięcie: selektor operatora, grupy i wygody ręki robota żyją u niej,
