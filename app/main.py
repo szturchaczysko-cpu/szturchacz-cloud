@@ -483,6 +483,20 @@ async def koord_rozmowa(request: Request):
             "wiadomosci": archiwum.zloz_rozmowe(_unikalne(trafione, okno), tid)}
 
 
+@app.post("/api/koord/wem/historia")
+async def koord_wem_historia(request: Request):
+    """Pobieracz historii mail/eBay z bramy WEM — jedna porcja (kanał + zakres ≤31 dni)."""
+    err = _csrf_guard(request)
+    if err:
+        return err
+    if not koordynator_of(request):
+        return JSONResponse({"ok": False}, status_code=403)
+    from .wspolne import wem_pobieracz
+    d = await _json(request)
+    return await run_in_threadpool(wem_pobieracz.pobierz_historie,
+                                   str(d.get("kanal") or ""), str(d.get("od") or ""), str(d.get("do") or ""))
+
+
 @app.get("/api/koord/rozmowy/szukaj")
 async def koord_rozmowy_szukaj(request: Request):
     """Szukajka archiwum: numer zamówienia / adres mail / telefon → wątki z trafień.

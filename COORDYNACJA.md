@@ -358,6 +358,15 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [ARTUR] **POBIERACZ HISTORII mail/eBay (etap 2/3) ZBUDOWANY** — zaplecze → Rozmowy
+  → „Historia z bramy": kanał + zakres dat (porcja ≤31 dni, bezpiecznik 2000 wiad.), zapis przez
+  istniejący magazyn (sklejanie przy zapisie), IDEMPOTENTNY (powtórka porcji = duplikaty pominięte;
+  test ✓), czas nadania ze źródła (stare maile lądują we właściwym miejscu chronologii), kierunek
+  OUT dla maili z naszych skrzynek. WA celowo poza zakresem (Meta bez historii). Kształt odpowiedzi
+  /receive parsowany TOLERANCYJNIE (Swagger go nie opisuje).
+  ⚠️ ŻYWA WERYFIKACJA WSTRZYMANA: brama WEM nie przyjmuje logowania (DEV 403, PROD 500 na
+  /auth/token, 2026-07-03) — najpewniej trwa przebudowa u Krzyśka (backlog). PUSH ŻYJE (ostatni
+  mail 2h temu) — nic nie ginie. Obserwuję; jak auth nie wstanie do jutra → ping do Krzyśka.
 - 2026-07-03: [ARTUR] **ARCHIWUM v2 — fundament pod WOLUMEN (etap 1/3 planu właściciela):**
   panel Rozmów przestał mielić wszystko — pyta bazę o WYCINEK: domyślnie najnowsze 100
   (przełącznik 100/300/1000), zakresy dat od–do, SZUKAJKA (nr zam / mail / telefon → wątki

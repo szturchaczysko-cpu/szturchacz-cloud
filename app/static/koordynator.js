@@ -207,6 +207,19 @@ async function szukajArchiwum() {
   if (!box.children.length) box.innerHTML = '<p class="empty">Brak trafień.</p>';
 }
 
+async function pobierzHistorie() {
+  const od = $("hist-od").value, doo = $("hist-do").value;
+  if (!od || !doo) { $("arch-msg").textContent = "Podaj zakres dat (≤31 dni)."; return; }
+  $("btn-hist").disabled = true;
+  $("arch-msg").textContent = "Pobieram historię z bramy…";
+  const r = await api("/api/koord/wem/historia", { kanal: $("hist-kanal").value, od, do: doo });
+  $("btn-hist").disabled = false;
+  $("arch-msg").textContent = r.ok
+    ? `Historia ${r.kanal} ${r.od}–${r.do}: pobrano ${r.pobrano}, zapisano ${r.zapisano}, duplikatów ${r.pominieto_duplikaty}.`
+    : (r.message || "Błąd.");
+  if (r.ok && r.zapisano) loadRozmowy();
+}
+
 async function loadRozmowy() {
   const box = $("rozmowy");
   $("arch-msg").textContent = "";
@@ -266,6 +279,7 @@ window.addEventListener("DOMContentLoaded", () => {
   $("prompt-list").addEventListener("change", (e) => { if (e.target.value) $("prompt-url").value = e.target.value; });
   $("btn-reload-rozmowy").addEventListener("click", loadRozmowy);
   $("btn-arch-szukaj").addEventListener("click", szukajArchiwum);
+  $("btn-hist").addEventListener("click", pobierzHistorie);
   $("arch-szukaj").addEventListener("keydown", (e) => { if (e.key === "Enter") szukajArchiwum(); });
   ["arch-limit", "arch-od", "arch-do"].forEach((i) => $(i).addEventListener("change", loadRozmowy));
   $("btn-wiezowczyk").addEventListener("click", loadWiezowczyk);

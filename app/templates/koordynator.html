@@ -76,6 +76,15 @@
       <input class="text-input" id="arch-szukaj" placeholder="szukaj: nr zam / mail / telefon" style="max-width:260px">
       <button class="btn btn--small" id="btn-arch-szukaj">Szukaj</button>
     </div>
+    <div class="arch-filtry">
+      <span class="meta">Historia z bramy (stare maile/eBay ze skrzynek, porcja ≤31 dni):</span>
+      <select class="text-input" id="hist-kanal" style="max-width:110px">
+        <option value="email">mail</option><option value="ebay">eBay</option>
+      </select>
+      <input class="text-input" id="hist-od" type="date">
+      <input class="text-input" id="hist-do" type="date">
+      <button class="btn btn--small" id="btn-hist">Pobierz historię</button>
+    </div>
     <p class="message" id="arch-msg"></p>
     <div id="rozmowy"></div>
   </section>
