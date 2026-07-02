@@ -334,6 +334,21 @@ async def koord_wa(request: Request):
     return {"ok": True, "count": count, "items": items}
 
 
+@app.get("/api/koord/wiezowczyk")
+async def koord_wiezowczyk(request: Request):
+    """Wieżowczyk (podajnik): SUROWY wsad spraw z bazy franciszkańskiej — najnowsze w zakresie
+    dat (?od=&do=) albo konkretny numer (?zam=, „odwrotny zam"). READ-ONLY przez wspólny silnik."""
+    if not koordynator_of(request):
+        return JSONResponse({"ok": False}, status_code=403)
+    from .wiezowczyk import podajnik
+    q = request.query_params
+    try:
+        limit = int(q.get("limit", "50"))
+    except ValueError:
+        limit = 50
+    return await run_in_threadpool(podajnik.pobierz, q.get("od", ""), q.get("do", ""), q.get("zam", ""), limit)
+
+
 @app.get("/api/koord/rozmowy")
 async def koord_rozmowy(request: Request):
     """Archiwum, poziom 2: wątki po kliencie/nadawcy (opcjonalnie ?channel=whatsapp|email|ebay).

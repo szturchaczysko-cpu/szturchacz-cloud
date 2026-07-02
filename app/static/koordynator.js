@@ -108,6 +108,38 @@ async function savePrompt() {
   if (r.ok) { $("prompt-current").textContent = r.current || "(domyślny z env)"; $("prompt-url").value = ""; }
 }
 
+/* --- Wieżowczyk: podajnik surowego wsadu (zakres dat / odwrotny zam) --- */
+async function loadWiezowczyk() {
+  const p = new URLSearchParams();
+  if ($("wz-od").value) p.set("od", $("wz-od").value);
+  if ($("wz-do").value) p.set("do", $("wz-do").value);
+  if ($("wz-zam").value.trim()) p.set("zam", $("wz-zam").value.trim());
+  $("wz-msg").textContent = "Pobieram…";
+  const r = await api("/api/koord/wiezowczyk?" + p.toString());
+  const box = $("wz-lista");
+  box.innerHTML = "";
+  if (!r.ok) { $("wz-msg").textContent = r.message || "Błąd."; return; }
+  $("wz-msg").textContent = "Spraw: " + (r.liczba || 0);
+  (r.sprawy || []).forEach((s) => {
+    const d = document.createElement("details");
+    d.className = "gotowiec";
+    const sum = document.createElement("summary");
+    const flagi = [s.ReklFlag ? "REKL" : "", s.KurFlag ? "KURIER" : "", s.Zoltek ? "ŻÓŁTEK" : ""]
+      .filter(Boolean).join(" ");
+    sum.textContent = `${s.zknzamnr} · ${s.data_zama} · ${s.kraj || s.kaCountry || "?"} · ${s.rodzaj_zama || "?"}`
+      + (flagi ? " · " + flagi : "") + (s.czy_austauch_zakonczony ? " · ZAKOŃCZONA" : "");
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = (s.klient_nazwa || "") + (s.kakMail ? " · " + s.kakMail : "") + (s.ktTelNr ? " · " + s.ktTelNr : "");
+    const pre = document.createElement("pre");
+    pre.className = "codeblock";
+    pre.textContent = s.suchy_wsad + (s.ContentTag ? "\n\nContentTag:\n" + s.ContentTag : "\n\n(bez taga)");
+    d.appendChild(sum); d.appendChild(meta); d.appendChild(pre);
+    box.appendChild(d);
+  });
+  if (!box.children.length) box.innerHTML = '<p class="empty">Brak spraw w tym zakresie.</p>';
+}
+
 /* --- Rozmowy: archiwum WEM. Poziom 1 = zamówienie (klucz domeny), poziom 2 = klient. --- */
 const arch = { tryb: "zam", kanal: "" };
 
@@ -203,6 +235,8 @@ window.addEventListener("DOMContentLoaded", () => {
   $("btn-save-prompt").addEventListener("click", savePrompt);
   $("prompt-list").addEventListener("change", (e) => { if (e.target.value) $("prompt-url").value = e.target.value; });
   $("btn-reload-rozmowy").addEventListener("click", loadRozmowy);
+  $("btn-wiezowczyk").addEventListener("click", loadWiezowczyk);
+  $("wz-zam").addEventListener("keydown", (e) => { if (e.key === "Enter") loadWiezowczyk(); });
   wireChips("arch-tryb", "tryb", (v) => { arch.tryb = v || "zam"; loadRozmowy(); });
   wireChips("arch-kanaly", "kanal", (v) => { arch.kanal = v; loadRozmowy(); });
 

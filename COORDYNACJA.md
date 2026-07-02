@@ -172,6 +172,13 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-02: [ARTUR] **WIEŻOWCZYK v1 zbudowany** (kafelek w zapleczu): surowy wsad spraw z bazy
+  franciszkańskiej przez WSPÓLNY silnik (`app/wspolne/klient_baz.py` → db-broker/silnik_baz;
+  READ-ONLY, wejścia regex-whitelist). Źródło wg atlasu: `STEEPC.dbo.v_austachStatusProsty`
+  (MASTER spraw) + `SZTURCHACZ.dbo.ItemsTag` (tag, most DokId=austauch_id, DokTyp=7).
+  Zapytanie SPRAWDZONE NA ŻYWEJ bazie (tunel dev). Format `suchy_wsad` = „NrZam: … | kraj |
+  rodzaj | … | tag: …" — DO PRZYPIĘCIA w styku FEED z bestchudy (strona Sylwii potwierdza).
+  Prod: wymaga env `ONPREM_DB_BROKER_URL` na szturchaczu (invoker już nadany).
 - 2026-07-02: **ZATWIERDZONE przez właściciela**: mapa ekranów (kafelek Szturchacz=PRACA/Sylwia,
   kafelek Wieżowiec=ZAPLECZE/Artur, zręby streamlitowe do rozbiórki, backup=Streamlit) + model
   autonomii (4 bramki) + Rozmowy jako zakładka zaplecza + Sylwia startuje świeżą sesją (Fable 5).

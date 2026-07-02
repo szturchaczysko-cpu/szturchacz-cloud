@@ -17,6 +17,10 @@
       <span class="kafelek__tytul">💬 Rozmowy — archiwum WEM</span>
       <span class="kafelek__opis">ruch z bramy po zamówieniu i po kliencie (WA / mail / eBay)</span>
     </button>
+    <button class="kafelek" data-cel="sek-wiezowczyk">
+      <span class="kafelek__tytul">🗼 Wieżowczyk — podajnik</span>
+      <span class="kafelek__opis">surowy wsad spraw z bazy franciszkańskiej (zakres dat / odwrotny zam)</span>
+    </button>
     <button class="kafelek" data-cel="sek-kolejka">
       <span class="kafelek__tytul">📋 Kolejka spraw</span>
       <span class="kafelek__opis">stan spraw per grupa (wolne / w toku / zakończone)</span>
@@ -61,6 +65,24 @@
       </span>
     </div>
     <div id="rozmowy"></div>
+  </section>
+
+  <section id="sek-wiezowczyk" class="koord-ekran" hidden>
+    <div class="koord-ekran__top">
+      <button class="btn btn--ghost btn--small btn-wroc">← Wróć</button>
+      <h2 class="card__title">Wieżowczyk — podajnik spraw</h2>
+    </div>
+    <p class="card__hint">Surowy wsad z bazy franciszkańskiej, od najnowszych. Bez przeliczania i
+      priorytetów — ten sam suchy materiał dla obu silników. Pole „odwrotny zam" ładuje konkretną sprawę.</p>
+    <div class="arch-filtry">
+      <label class="koord-row"><span>od</span><input class="text-input" id="wz-od" type="date"></label>
+      <label class="koord-row"><span>do</span><input class="text-input" id="wz-do" type="date"></label>
+      <label class="koord-row"><span>odwrotny zam</span>
+        <input class="text-input" id="wz-zam" placeholder="np. 382576" inputmode="numeric"></label>
+      <button class="btn btn--primary" id="btn-wiezowczyk">Pobierz</button>
+    </div>
+    <p class="message" id="wz-msg"></p>
+    <div id="wz-lista"></div>
   </section>
 
   <section id="sek-kolejka" class="koord-ekran" hidden>
