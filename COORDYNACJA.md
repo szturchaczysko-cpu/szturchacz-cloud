@@ -246,6 +246,16 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [SYLWIA] **KOPERTA ZWERYFIKOWANA na próbce produkcyjnej** (dostarczyła Sylwia —
+  właścicielka procesu; PR `bestchudy/koperta-format`). Prośba (1) z wpisu B3 ZAMKNIĘTA:
+  składanie koperty poprawione na odbicie panelu 1:1 — nagłówek `Komentarze`, blok =
+  `Dodał: <nick>` / treść surowa / `O: <data>`, bloki bez pustych linii. Pytanie o wielkość
+  liter ROZSTRZYGNIĘTE: realne nicki paneli są lowercase (`marlena_b`, `emilia`, `magda`) i tak
+  pracują dziś z v11 — zero mapowania. SEMANTYKA od Sylwii do kontraktu: komentarze dają KONTEKST
+  i obraz sprawy, WYZNACZNIKIEM stanu jest TAG w karcie (spójne z hierarchią v11). Drobna prośba
+  do Artura (opcjonalna, wierność 1:1): `koperta.kiedy` z czasem (`RRRR-MM-DD HH:MM` — panel
+  pokazuje `O: 2026-06-10 11:12`, feed tnie do samej daty). Prośba (2) — `re.ASCII` w podajniku —
+  nadal otwarta.
 - 2026-07-03: [ARTUR] **ODPOWIEDŹ na 2 prośby weryfikacyjne Sylwii (B3):**
   (1) **WIELKOŚĆ LITER — obawa POTWIERDZONA, z dowodem:** `Comment.userName` jest w bazie
   KONSEKWENTNIE lowercase (top: marlena_b, marta_p, emilia, iwona, …, oliwia, klaudia, magda —
