@@ -170,15 +170,21 @@ chudy autonomiczny, ale podgląd + historia per case zostają); v11 na Cloud Run
    pod te przykłady; mój wcześniejszy minimalny wzorzec FORMAT 2 (§5) pozostaje jako spis reguł
    parsowania (v11 czyta wsad SEMANTYCZNIE, nie pozycyjnie — obie formy zgodne z promptem).
 
-## STYK: LEWA STRONA / RĘKA ROBOTA (dla sesji Sylwii — koncept przekazany 2026-07-03)
-Odpowiedź na uwagę operatorki „miniatura streamlita się nie nadaje". Decyzja właściciela: pliki v11
-NIETKNIĘTE, ramka ZOSTAJE, `policz_v11` odrzucone — zamiast tego **przyciski nad oknami wszczepiają
-operatora i wsad do OBU stron** (do v11 „jak ręka robota", bez zmiany jego kodu).
+## STYK: LEWA STRONA / RĘKA ROBOTA
+**STATUS: SZKIC (v0) — NIE KODOWAĆ.** To jest KONCEPT do OBEJRZENIA i SKOMENTOWANIA przez stronę
+Sylwii, nie zlecenie. Pętla (regulamin → STATUSY KONTRAKTU): (1) Sylwia czyta i dopisuje TU
+komentarz/kontrę (co pasuje, co nie, alternatywy — zwłaszcza wykonalność autologowania i wklejki
+w realnym DOM-ie streamlita, który znasz lepiej), (2) uzgadniamy między stronami, (3) FINAL wraca
+do WŁAŚCICIELA do zatwierdzenia, (4) dopiero wtedy kod po obu stronach.
+Kontekst: odpowiedź na uwagę operatorki „miniatura streamlita się nie nadaje". Decyzja właściciela
+(kierunkowa): pliki v11 NIETKNIĘTE, ramka ZOSTAJE, `policz_v11` odrzucone — zamiast tego
+**przyciski nad oknami wszczepiają operatora i wsad do OBU stron** (do v11 „jak ręka robota",
+bez zmiany jego kodu).
 STRONA SKRZYNKI (Artur) — GOTOWE: rura `/v11/` (`app/wspolne/v11_rura.py`, w main) serwuje kontener
 pod NASZĄ domeną (HTTP + websocket Streamlita, testy 5/5). Aktywacja na serwerze = env
 `V11_UPSTREAM=<adres kontenera>` + `V11_URL=/v11/` — robi koordynator przy wdrożeniu, gdy toolbar
 gotowy (albo wcześniej na życzenie, żebyś miała `/v11/` do testów — poproś wpisem).
-STRONA SYLWII — DO ZBUDOWANIA (Twój pas, w `app/bestchudy/`):
+PROPOZYCJA DLA STRONY SYLWII (szkic do Twojej oceny — skomentuj zanim cokolwiek powstanie):
 - Toolbar NAD oboma oknami: „wskaż operatora" (lista) + „pobierz kolejny case" (styk `daj_sprawe`).
 - CHUDY: parametry wchodzą wprost (masz już `policz_chudego`).
 - V11 w ramce: gdy `V11_URL` zaczyna się od `/` (ta sama domena → dostęp do `iframe.contentWindow/
@@ -515,6 +521,11 @@ PĘTLA:
 5. **Deploy WYŁĄCZNIE z `main`, przez koordynatora.** Nigdy z rozjechanego lokalnego drzewa.
 KONTRAKTY: styk dwóch pasów → doc w repo, każdy wypełnia SWOJĄ stronę przez PR, „UZGODNIONE" dopiero
 po obu zatwierdzeniach. Dopóki nie uzgodnione — nikt nie koduje swojej strony.
+**STATUSY KONTRAKTU (obowiązkowy nagłówek każdego styku; wpis BEZ statusu = SZKIC):**
+`SZKIC` (propozycja jednej strony — oglądaj, komentuj, NIE KODUJ) → `W KOMENTARZU` (druga strona
+dopisała kontrę/uwagi) → `UZGODNIONE` (obie strony potwierdziły) → `ZATWIERDZONE` (właściciel
+kliknął FINAL) → dopiero **KOD**. Kodowanie przed ZATWIERDZONE = złamanie regulaminu — nawet gdy
+szkic wygląda jak gotowa specyfikacja.
 CZUWANIE (zalecane w OBU sesjach): warta wg skilla **`czuwanie-repo`** (team-skills) — sesja co
 ~20 min po cichu sprawdza repo i AKTYWNIE wybija człowiekowi quiz, gdy druga strona zostawiła coś
 do decyzji (koordynator: PR-y/wpisy vibecoderów; vibecoder: odpowiedzi w koordynacji + ruch `main`
