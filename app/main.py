@@ -332,6 +332,30 @@ async def koord_wa(request: Request):
     return {"ok": True, "count": count, "items": items}
 
 
+@app.get("/api/koord/rozmowy")
+async def koord_rozmowy(request: Request):
+    """Archiwum: lista wątków (ruch z bramy WEM sklejony po kliencie). Stare rekordy bez pól
+    spinających doliczane w locie z treści — zero migracji."""
+    if not koordynator_of(request):
+        return JSONResponse({"ok": False}, status_code=403)
+    from .wspolne import archiwum
+    msgs = await run_in_threadpool(deps.wa_inbox.recent, 500)
+    return {"ok": True, "watki": archiwum.zbuduj_watki(msgs)}
+
+
+@app.get("/api/koord/rozmowy/watek")
+async def koord_rozmowa(request: Request):
+    """Archiwum: oś czasu jednego wątku (in+out chronologicznie, duplikaty oflagowane)."""
+    if not koordynator_of(request):
+        return JSONResponse({"ok": False}, status_code=403)
+    tid = (request.query_params.get("id") or "").strip()
+    if not tid:
+        return JSONResponse({"ok": False, "message": "Brak id wątku."}, status_code=400)
+    from .wspolne import archiwum
+    msgs = await run_in_threadpool(deps.wa_inbox.recent, 500)
+    return {"ok": True, "thread_id": tid, "wiadomosci": archiwum.zloz_rozmowe(msgs, tid)}
+
+
 @app.get("/api/koord/gotowce")
 async def koord_gotowce(request: Request):
     if not koordynator_of(request):

@@ -341,6 +341,7 @@ class WaInboxStore(_JsonFile):
         super().__init__(path, {"items": []})
 
     def add(self, raw: Any, headers: Optional[dict] = None) -> dict:
+        from .archiwum import wzbogac
         from .brama_wa import parsuj_wa
         rec = {
             "id": uuid.uuid4().hex,
@@ -349,6 +350,7 @@ class WaInboxStore(_JsonFile):
             "raw": raw if isinstance(raw, (dict, list)) else str(raw),
             "headers": {k: v for k, v in (headers or {}).items() if str(k).lower() in _NAGL_OK},
         }
+        rec.update(wzbogac(rec))  # sklejanie po kliencie PRZY ZAPISIE (thread_id/order_refs/dedup)
         with self._lock:
             self._data["items"].append(rec)
             if len(self._data["items"]) > self.MAX:
@@ -360,6 +362,7 @@ class WaInboxStore(_JsonFile):
                       msg_id: str = "", sender: str = "") -> dict:
         """Zapisz wiadomość WYCHODZĄCĄ (kierunek=out) — druga strona dialogu w archiwum.
         Woła to klient wysyłki przez bramę po udanym /messages/send (następna cegła)."""
+        from .archiwum import wzbogac
         from .brama_wa import rekord_wyslany
         rec = {
             "id": uuid.uuid4().hex,
@@ -368,6 +371,7 @@ class WaInboxStore(_JsonFile):
             "raw": {"_outbound": True, "channel": channel, "recipient": recipient, "body": body},
             "headers": {},
         }
+        rec.update(wzbogac(rec))
         with self._lock:
             self._data["items"].append(rec)
             if len(self._data["items"]) > self.MAX:

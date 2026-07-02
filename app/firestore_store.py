@@ -258,6 +258,7 @@ class FirestoreWaInboxStore:
         raise ost if ost else RuntimeError("zapis nieudany")
 
     def add(self, raw, headers: Optional[dict] = None) -> dict:
+        from .wspolne.archiwum import wzbogac
         from .wspolne.brama_wa import parsuj_wa
         rec = {
             "id": uuid.uuid4().hex,
@@ -266,6 +267,7 @@ class FirestoreWaInboxStore:
             "raw": raw if isinstance(raw, (dict, list)) else str(raw),
             "headers": {k: v for k, v in (headers or {}).items() if str(k).lower() in _NAGL_OK},
         }
+        rec.update(wzbogac(rec))  # sklejanie po kliencie PRZY ZAPISIE (thread_id/order_refs/dedup)
         self._zapisz_z_ponawianiem(rec)
         return rec
 
@@ -273,6 +275,7 @@ class FirestoreWaInboxStore:
                       msg_id: str = "", sender: str = "") -> dict:
         """Zapisz wiadomość WYCHODZĄCĄ (kierunek=out) — druga strona dialogu w archiwum.
         Woła to klient wysyłki przez bramę po udanym /messages/send (następna cegła)."""
+        from .wspolne.archiwum import wzbogac
         from .wspolne.brama_wa import rekord_wyslany
         rec = {
             "id": uuid.uuid4().hex,
@@ -281,6 +284,7 @@ class FirestoreWaInboxStore:
             "raw": {"_outbound": True, "channel": channel, "recipient": recipient, "body": body},
             "headers": {},
         }
+        rec.update(wzbogac(rec))
         self._zapisz_z_ponawianiem(rec)
         return rec
 
