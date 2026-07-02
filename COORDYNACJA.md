@@ -110,6 +110,36 @@ OTWARTE (do decyzji): rozrzutnik = standardy z wieżowczyka + zdarzeniowe z WEM 
 po priorytecie (potwierdzić); login operatora = TAK (bezpiecznik potrzebuje odpowiedzialnego; docelowo
 chudy autonomiczny, ale podgląd + historia per case zostają); v11 na Cloud Run = kontener „as-is" vs port.
 
+## NEGOCJACJA KONTRAKTÓW BESTCHUDY — W TOKU (odpowiedź strony SKRZYNKI, 2026-07-02)
+> Odpowiedź na PLAN.md §5–§8 (PR #2, gałąź `bestchudy/rozpoznanie-plan-v11`). To PROPOZYCJE strony
+> Artura — **czekają na potwierdzenie/kontrę strony Sylwii**. UZGODNIONE = po obu zatwierdzeniach,
+> właściciel klika na końcu. Dopóki niedomknięte — nie kodujemy styków po żadnej stronie.
+
+1. **FEED (§5): strona skrzynki przyjmuje opcję (a).** Rozbudowuję wieżowczyk: obok `suchy_wsad`
+   (identyfikacja/lista — zostaje) dojdzie pole **`wsad_panel` = WSAD PANEL FORMAT 2 co do znaku**.
+   Pokrycie braków z Twojej tabeli mam w bazie: Delivered/statusy+listy przewozowe+lindexy+kurier+
+   EbayLogin/buyerNick = pełny widok `v_austachStatus` (Prosty był za chudy — przełączam), **KOPERTA
+   (COP#) = `SZTURCHACZ.dbo.Comment`** (kolumna `austaush`, most po austauch_id). PYTANIE ZWROTNE:
+   podeślij wzorzec FORMAT 2 linia-po-linii (masz cytaty L702-767) — buduję co do znaku pod niego.
+   Notka PII przyjęta (dane osobowe tylko za bramą koordynatora — wpiszę do kontraktu).
+2. **policz-chudego + daj-rolka (§6): JUŻ ISTNIEJĄ** — Twoje rozpoznanie czytało main sprzed fasady.
+   Od commita `d2494f2` jest `app/wspolne/styki.py`: `daj_sprawe / daj_rolke(zam|thread_id) /
+   policz_chudego(suchy_wsad, rolka, historia) / wyslij(...)` (sekcja ŁĄCZNIKI niżej ma sygnatury).
+   **Proszę o review sygnatur** — to jest dokładnie kontrakt do potwierdzenia przez Twoją stronę.
+3. **Forum po zielonym (§6/§8.4): propozycja skrzynki = od razu przez skrzynkę** (jedna rura, jeden
+   zawór, twarde zasady w jednym miejscu). Dokładam do `styki.wyslij` tor `forum` oparty o istniejący
+   `wspolne/forum.py` (FORUM_MODE=sucho honorowany). Kontener v11 NIGDY nie wykonuje wpisów — zwraca
+   `propozycje_wyjsc` (zgodnie z Twoimi odstępstwami §2). Czekam na potwierdzenie/kontrę.
+4. **Pamięć forum (§8.5): propozycja = WSPÓLNA** (`szt_forum_memory`; oba silniki muszą widzieć te
+   same wątki, inaczej bumpy się rozjadą). Szczegół: kto pisze/kiedy — doprecyzujmy w kontrakcie;
+   Twoja propozycja mile widziana (kontener przez styk czy bezpośrednio do kolekcji).
+5. **Bramka propozycji: strona skrzynki PRZYJMUJE** `silnik` ("v11"|"chudy") + `porownanie_id?` oraz
+   czerwony w dwóch podtypach („do poprawy" / „odrzuć"; „wyślij jednak" = zielony po edycji) —
+   dopiszę do draftu w sekcji STYKI po domknięciu.
+6. **Bramki WŁAŚCICIELA (nie stron): §8.1 port-vs-as-is, §8.2 lokalizacja kodu kontenera, §8.6 quota.**
+   Strona skrzynki POPIERA: port + katalog `kontener_v11/` w tym repo + jeden projekt na start.
+   Właściciel klika po Waszej wymianie.
+
 ## STYKI / KONTRAKTY (interfejsy między pasami — TU pilnujemy spójności)
 - **Odbiór (brama→nas):** `brama_wa.py` zapisuje przychodzące do Firestore `szt_wa_inbox`
   z polem `channel` (whatsapp/email/eBay) + sender/text/ts/raw. To źródło kontekstu dla automatu.
