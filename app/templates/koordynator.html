@@ -17,6 +17,10 @@
       <span class="kafelek__tytul">💬 Rozmowy — archiwum WEM</span>
       <span class="kafelek__opis">ruch z bramy po zamówieniu i po kliencie (WA / mail / eBay)</span>
     </button>
+    <button class="kafelek" data-cel="sek-karta">
+      <span class="kafelek__tytul">🗂️ Karta sprawy</span>
+      <span class="kafelek__opis">jedno okno: wsad + koperty + wszystkie wiadomości klienta (szukaj po zamie/nazwisku/telefonie)</span>
+    </button>
     <button class="kafelek" data-cel="sek-wiezowczyk">
       <span class="kafelek__tytul">🗼 Wieżowczyk — podajnik</span>
       <span class="kafelek__opis">surowy wsad spraw z bazy franciszkańskiej (zakres dat / odwrotny zam)</span>
@@ -87,6 +91,23 @@
     </div>
     <p class="message" id="arch-msg"></p>
     <div id="rozmowy"></div>
+  </section>
+
+  <section id="sek-karta" class="koord-ekran" hidden>
+    <div class="koord-ekran__top">
+      <button class="btn btn--ghost btn--small btn-wroc">← Wróć</button>
+      <h2 class="card__title">Karta sprawy</h2>
+    </div>
+    <p class="card__hint">Wpisz numer zamówienia — albo nazwisko / mail / telefon klienta
+      (kandydaci z bazy franciszkańskiej). Karta skleja: wsad + koperty ze szturchacza
+      i wszystkie wiadomości WA / mail / eBay z archiwum.</p>
+    <div class="arch-filtry">
+      <input class="text-input" id="karta-q" placeholder="np. 380895 / MULTITRANSMISIONES / +34648…" style="max-width:320px">
+      <button class="btn btn--primary" id="btn-karta">Szukaj</button>
+    </div>
+    <p class="message" id="karta-msg"></p>
+    <div id="karta-kandydaci"></div>
+    <div id="karta-wynik"></div>
   </section>
 
   <section id="sek-wiezowczyk" class="koord-ekran" hidden>

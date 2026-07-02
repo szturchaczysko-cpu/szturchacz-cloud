@@ -142,6 +142,75 @@ async function loadWiezowczyk() {
   if (!box.children.length) box.innerHTML = '<p class="empty">Brak spraw w tym zakresie.</p>';
 }
 
+/* --- Karta sprawy (etap 3): jedno okno na zam — baza franciszkańska + archiwum WEM --- */
+async function pokazKarte(zam) {
+  const box = $("karta-wynik");
+  $("karta-kandydaci").innerHTML = "";
+  box.innerHTML = '<p class="empty">Składam kartę…</p>';
+  const r = await api("/api/koord/karta?zam=" + encodeURIComponent(zam));
+  box.innerHTML = "";
+  if (!r.ok) { $("karta-msg").textContent = r.message || "Błąd."; return; }
+  const s = r.sprawa;
+  const naglowek = document.createElement("h3");
+  naglowek.className = "card__title";
+  naglowek.textContent = s
+    ? `Zam ${r.zam} · ${s.klient_nazwa || "?"} · ${s.kaCountry || s.kraj || ""} · ${s.data_zama || ""}`
+    : `Zam ${r.zam} (sprawa: ${r.sprawa_blad || "brak w bazie"})`;
+  box.appendChild(naglowek);
+  const liczniki = document.createElement("p");
+  liczniki.className = "meta";
+  const czesci = Object.entries(r.liczniki || {}).map(([k, v]) => `${k}: ${v.in} od klienta / ${v.out} nasze`);
+  liczniki.textContent = czesci.length ? "Wiadomości — " + czesci.join(" · ") : "Brak wiadomości w archiwum.";
+  box.appendChild(liczniki);
+  if (s && s.wsad_panel) {
+    const d = document.createElement("details");
+    d.className = "gotowiec"; d.open = true;
+    const su = document.createElement("summary"); su.textContent = "WSAD (linia ze szturchacza)";
+    const pre = document.createElement("pre"); pre.className = "codeblock"; pre.textContent = s.wsad_panel;
+    d.appendChild(su); d.appendChild(pre); box.appendChild(d);
+  }
+  if (s && (s.koperta || []).length) {
+    const d = document.createElement("details");
+    d.className = "gotowiec"; d.open = true;
+    const su = document.createElement("summary"); su.textContent = `KOPERTY (${s.koperta.length})`;
+    const pre = document.createElement("pre"); pre.className = "codeblock";
+    pre.textContent = s.koperta.map((k) => `[${k.kiedy}] ${k.kto}:\n${k.tresc}`).join("\n\n");
+    d.appendChild(su); d.appendChild(pre); box.appendChild(d);
+  }
+  if ((r.wiadomosci || []).length) {
+    const d = document.createElement("details");
+    d.className = "gotowiec"; d.open = true;
+    const su = document.createElement("summary"); su.textContent = `OŚ CZASU WIADOMOŚCI (${r.wiadomosci.length})`;
+    const cialo = document.createElement("div");
+    r.wiadomosci.forEach((m) => cialo.appendChild(liniaWiadomosci(m)));
+    d.appendChild(su); d.appendChild(cialo); box.appendChild(d);
+  }
+  $("karta-msg").textContent = "";
+}
+
+async function kartaSzukaj() {
+  const q = $("karta-q").value.trim();
+  if (!q) return;
+  $("karta-msg").textContent = "Szukam…";
+  $("karta-wynik").innerHTML = "";
+  const r = await api("/api/koord/karta/szukaj?q=" + encodeURIComponent(q));
+  if (!r.ok) { $("karta-msg").textContent = r.message || "Błąd."; return; }
+  if (r.typ === "zam") { pokazKarte(r.zam); return; }
+  const box = $("karta-kandydaci");
+  box.innerHTML = "";
+  $("karta-msg").textContent = `Kandydaci: ${(r.kandydaci || []).length}`;
+  (r.kandydaci || []).forEach((k) => {
+    const li = document.createElement("button");
+    li.className = "kafelek";
+    li.style.width = "100%"; li.style.marginBottom = "6px";
+    li.innerHTML = `<span class="kafelek__tytul">${k.zam} · ${k.klient}</span>` +
+      `<span class="kafelek__opis">${k.kraj} · ${k.data} · ${k.mail} · ${k.tel}</span>`;
+    li.addEventListener("click", () => pokazKarte(String(k.zam)));
+    box.appendChild(li);
+  });
+  if (!box.children.length) box.innerHTML = '<p class="empty">Brak trafień w bazie.</p>';
+}
+
 /* --- Rozmowy: archiwum WEM. Poziom 1 = zamówienie (klucz domeny), poziom 2 = klient. --- */
 const arch = { tryb: "zam", kanal: "" };
 
@@ -280,6 +349,8 @@ window.addEventListener("DOMContentLoaded", () => {
   $("btn-reload-rozmowy").addEventListener("click", loadRozmowy);
   $("btn-arch-szukaj").addEventListener("click", szukajArchiwum);
   $("btn-hist").addEventListener("click", pobierzHistorie);
+  $("btn-karta").addEventListener("click", kartaSzukaj);
+  $("karta-q").addEventListener("keydown", (e) => { if (e.key === "Enter") kartaSzukaj(); });
   $("arch-szukaj").addEventListener("keydown", (e) => { if (e.key === "Enter") szukajArchiwum(); });
   ["arch-limit", "arch-od", "arch-do"].forEach((i) => $(i).addEventListener("change", loadRozmowy));
   $("btn-wiezowczyk").addEventListener("click", loadWiezowczyk);

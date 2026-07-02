@@ -221,6 +221,42 @@ def pobierz(od: str = "", do: str = "", zam: str = "", limit: int = 50, grupa: s
     return {"ok": True, "sprawy": sprawy, "liczba": len(sprawy)}
 
 
+_SZUKAJ_RE = re.compile(r"^[\w @.+\-()]{2,60}$", re.UNICODE)  # nazwisko/mail/telefon — bez znaków SQL
+
+
+def szukaj_klienta(q: str) -> dict:
+    """KARTA SPRAWY (etap 3): kandydaci z bazy franciszkańskiej po nazwisku / mailu / telefonie.
+    Zwraca do 20 spraw (nrZam, klient, kraj, data, mail, tel) od najnowszych, po jednym wpisie
+    na zam. Wejście przez whitelistę znaków + escapowanie apostrofu i nawiasów LIKE (T-SQL)."""
+    q = str(q or "").strip()
+    if not _SZUKAJ_RE.match(q):
+        return {"ok": False, "message": "Szukajka: 2-60 znaków (litery/cyfry/spacje/@.+-), bez znaków specjalnych."}
+    bezpieczne = q.replace("'", "''").replace("[", "[[]").replace("%", "[%]").replace("_", "[_]")
+    sql = f"""
+select top 200 p.zknzamnr, p.data_zama, p.klient_nazwa, p.kraj, p.kaCountry, p.kakMail, p.ktTelNr
+from dbo.v_austachStatus_mailTel p
+where p.klient_nazwa like '%{bezpieczne}%' or p.kakMail like '%{bezpieczne}%' or p.ktTelNr like '%{bezpieczne}%'
+order by p.data_zama desc
+"""
+    from ..wspolne import klient_baz
+    try:
+        wiersze = klient_baz.czytaj("STEEPC", sql, limit=200)
+    except Exception as e:  # noqa: BLE001
+        return {"ok": False, "message": f"Źródło spraw niedostępne ({type(e).__name__})."}
+    widziane, kandydaci = set(), []
+    for r in wiersze:  # widok dubluje per telefon — jeden wpis na zam
+        z = r.get("zknzamnr")
+        if z in widziane:
+            continue
+        widziane.add(z)
+        kandydaci.append({"zam": z, "data": _data(r.get("data_zama")),
+                          "klient": r.get("klient_nazwa") or "", "kraj": r.get("kaCountry") or r.get("kraj") or "",
+                          "mail": r.get("kakMail") or "", "tel": r.get("ktTelNr") or ""})
+        if len(kandydaci) >= 20:
+            break
+    return {"ok": True, "q": q, "kandydaci": kandydaci}
+
+
 if __name__ == "__main__":
     # sanity — walidacja i format wsadu (bez dotykania bazy)
     assert _waliduj("2026-07-01", "", "", 50)[4] is None

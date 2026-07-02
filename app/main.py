@@ -483,6 +483,49 @@ async def koord_rozmowa(request: Request):
             "wiadomosci": archiwum.zloz_rozmowe(_unikalne(trafione, okno), tid)}
 
 
+@app.get("/api/koord/karta")
+async def koord_karta(request: Request):
+    """KARTA SPRAWY (etap 3): jedno okno na zam — linia+koperty ze szturchacza (baza
+    franciszkańska) + WSZYSTKIE wiadomości WA/mail/eBay z archiwum + liczniki per kanał."""
+    if not koordynator_of(request):
+        return JSONResponse({"ok": False}, status_code=403)
+    zam = (request.query_params.get("zam") or "").strip()
+    if not zam.isdigit():
+        return JSONResponse({"ok": False, "message": "Podaj numer zamówienia."}, status_code=400)
+    from .wiezowczyk import podajnik
+    from .wspolne import archiwum
+    sprawa = await run_in_threadpool(podajnik.pobierz, "", "", zam, 1)
+    trafione = await run_in_threadpool(deps.wa_inbox.po_zamie, zam)
+    okno = await run_in_threadpool(deps.wa_inbox.recent, 300)
+    wiadomosci = archiwum.zloz_zamowienie(_unikalne(trafione, okno), zam)
+    liczniki: dict = {}
+    for w in wiadomosci:
+        k = liczniki.setdefault(w.get("channel") or "?", {"in": 0, "out": 0})
+        k["out" if w.get("kierunek") == "out" else "in"] += 1
+    return {"ok": True, "zam": zam,
+            "sprawa": (sprawa.get("sprawy") or [None])[0] if sprawa.get("ok") else None,
+            "sprawa_blad": None if sprawa.get("ok") else sprawa.get("message"),
+            "wiadomosci": wiadomosci, "liczniki": liczniki}
+
+
+@app.get("/api/koord/karta/szukaj")
+async def koord_karta_szukaj(request: Request):
+    """Wyszukiwarka karty: cyfry 4-7 = od razu zam; inaczej nazwisko/mail/telefon →
+    kandydaci z bazy franciszkańskiej (agent baz zmapował pola; widok _mailTel)."""
+    if not koordynator_of(request):
+        return JSONResponse({"ok": False}, status_code=403)
+    q = (request.query_params.get("q") or "").strip()
+    if not q:
+        return JSONResponse({"ok": False, "message": "Puste zapytanie."}, status_code=400)
+    if q.isdigit() and 4 <= len(q) <= 7:
+        return {"ok": True, "typ": "zam", "zam": q}
+    from .wiezowczyk import podajnik
+    wynik = await run_in_threadpool(podajnik.szukaj_klienta, q)
+    if not wynik.get("ok"):
+        return wynik
+    return {"ok": True, "typ": "kandydaci", **wynik}
+
+
 @app.post("/api/koord/wem/historia")
 async def koord_wem_historia(request: Request):
     """Pobieracz historii mail/eBay z bramy WEM — jedna porcja (kanał + zakres ≤31 dni)."""

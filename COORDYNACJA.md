@@ -358,6 +358,12 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [ARTUR] **KARTA SPRAWY (etap 3/3) ZBUDOWANA** — nowy kafelek zaplecza: wpisujesz
+  nr zamówienia ALBO nazwisko/mail/telefon (kandydaci z bazy franciszkańskiej, widok _mailTel,
+  wejście przez whitelistę znaków + escapowanie LIKE; dedup per zam; ŻYWY test: MULTITRANSMISIONES
+  → 20 spraw, telefon → te same). Karta skleja w jedno okno: nagłówek sprawy + LICZNIKI wiadomości
+  per kanał (in/out) + WSAD (linia ze szturchacza) + KOPERTY + pełna oś czasu WA/mail/eBay
+  z archiwum. Plan właściciela (paginacja → pobieracz → karta) DOMKNIĘTY w kodzie; deploy zbiorczy.
 - 2026-07-03: [ARTUR] **POBIERACZ HISTORII mail/eBay (etap 2/3) ZBUDOWANY** — zaplecze → Rozmowy
   → „Historia z bramy": kanał + zakres dat (porcja ≤31 dni, bezpiecznik 2000 wiad.), zapis przez
   istniejący magazyn (sklejanie przy zapisie), IDEMPOTENTNY (powtórka porcji = duplikaty pominięte;
