@@ -3,6 +3,17 @@
 Apka-kafelek ekosystemu Pulpit. Jeden serwis FastAPI, jedna wspólna kolejka spraw,
 dwa widoki nad nią: **operator** (dzień) i **koordynator + autopilot** (noc).
 
+## START KAŻDEJ SESJI (obowiązkowo, zanim cokolwiek zrobisz)
+Przeczytaj **`COORDYNACJA.md`** — wspólny mózg sesji Artura i Sylwii: cel, podział pasów,
+styki-kontrakty, decyzje, regulamin. Nie wymyślaj rozwiązań na coś, co tam już ustalone.
+**Sesja BESTCHUDY (Sylwia):** twój zakres = COORDYNACJA sekcja „PODZIAŁ" (rozpis 5 pkt) —
+pracujesz WYŁĄCZNIE w `app/bestchudy/` + kolekcje `bc_*` + kontener v11; wspólnych plików nie
+edytujesz; czego potrzebujesz od reszty → styk uzgodniony wpisem w COORDYNACJA, potem kod.
+Referencja (READ-ONLY): repo `szturchacz-test` (prompt `szturchacz_vnext_v1_11.txt` — v1_11,
+NIE v1_9) i `wiezowiec-test`. Faza 1 = ROZPOZNANIE bez kodu → dyskusja → dopiero patch.
+Praca: gałąź (nie `main`) → PR → koordynator (Artur) scala i TYLKO on wdraża.
+ZERO `gcloud` / logowania do Google Cloud / dostępu do proda. Lokalnie: `.venv` + `uvicorn`.
+
 ## Stos i struktura
 - Python + FastAPI + Jinja2 + Firestore (prod) / pliki JSON (lokalnie), wzorzec jak w Pulpicie.
 - `app/wspolne/` — model sprawy, reguły domenowe, klient forum, silnik AI, repozytoria.

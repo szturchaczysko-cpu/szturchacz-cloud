@@ -13,10 +13,10 @@ Operatorzy = TYLKO telefony, reklamacje, „czy szturchać", nie-automaty.
 **Faza 1 = bramka akceptacji operatora (zielony/czerwony)** przed realną akcją (wzorzec sucho→realne).
 
 ## PODZIAŁ PASÓW
-- **ARTUR** (ta sesja z Claude): BRAMA ATA (WA/mail/eBay — odbiór+wysyłka) + prompt **chudy**.
-- **SYLWIA** (jej sesja z Claude): orkiestracja automatu (skrzynia IN-OUT) + **bramka akceptacji
-  operatora** (zielony/czerwony) + **panel odrzutów**.
-- Granica MIĘKKA — doprecyzowujemy TU. Cokolwiek na styku → zapisz w „STYKI/KONTRAKTY".
+AKTUALNY podział = sekcja niżej „SKRZYNKA SZTURCHACZOVA + BESTCHUDY → PODZIAŁ" (2026-07-02):
+**ARTUR = skrzynka** (brama WEM, archiwum, wieżowczyk, kanały, silnik chudego),
+**SYLWIA = bestchudy** (porównywarka v11‖chudy w module `app/bestchudy/` + kontener v11).
+Cokolwiek na styku → zapisz w „STYKI/KONTRAKTY" ZANIM powstanie kod.
 
 ## SKRZYNKA SZTURCHACZOVA + BESTCHUDY — mapa całości (2026-07-01, wg wizji właściciela)
 Nazwa robocza całości = **skrzynka Szturchaczova** (hub IN-OUT: auto-pobór z kanałów + wysyłka do klienta).
@@ -203,6 +203,7 @@ KONTRAKTY: styk dwóch pasów → doc w repo, każdy wypełnia SWOJĄ stronę pr
 po obu zatwierdzeniach. Dopóki nie uzgodnione — nikt nie koduje swojej strony.
 
 ## WSKAŹNIKI
-- `CLAUDE.md` — stos, struktura, bezpieczniki.
+- `CLAUDE.md` — stos, struktura, bezpieczniki + blok „START KAŻDEJ SESJI" (wczytuje się SAM
+  przy starcie sesji w folderze repo i odsyła tutaj — brief dociąga się automatycznie,
+  nic się nie wkleja; jedyny ręczny moment = pierwsze sklonowanie repo).
 - Referencja streamlitowa (READ-ONLY): repo `szturchacz-test` (prompt v1_11), `wiezowiec-test`.
-- Brief startowy sesji = wklejany prompt (NIE plik w repo).
