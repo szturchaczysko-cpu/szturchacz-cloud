@@ -1,33 +1,93 @@
 {% extends "base.html" %}
-{% block title %}Szturchacz — koordynator{% endblock %}
+{% block title %}Wieżowiec — zaplecze{% endblock %}
 {% block body %}
 <div class="topbar">
-  <div class="topbar__brand">🏢 Szturchacz — koordynator</div>
+  <div class="topbar__brand">🏢 Wieżowiec — zaplecze</div>
   <div class="topbar__right">
     <span class="badge" id="kpi-diamenty">💎 0 dziś</span>
     <span class="badge badge--muted" id="kpi-forum">forum: —</span>
-    <span class="badge badge--muted" id="kpi-autopilot">autopilot: —</span>
     <a class="btn btn--ghost btn--small" href="/">Ekran operatora</a>
   </div>
 </div>
 
-<main class="koord-grid">
-  <section class="card">
-    <h2 class="card__title">Kolejka spraw</h2>
+<main class="koord-wrap">
+  <!-- MENU: kafelki zaplecza — klik otwiera sekcję na pełnym ekranie -->
+  <div id="menu" class="koord-kafelki">
+    <button class="kafelek" data-cel="sek-rozmowy">
+      <span class="kafelek__tytul">💬 Rozmowy — archiwum WEM</span>
+      <span class="kafelek__opis">ruch z bramy po zamówieniu i po kliencie (WA / mail / eBay)</span>
+    </button>
+    <button class="kafelek" data-cel="sek-kolejka">
+      <span class="kafelek__tytul">📋 Kolejka spraw</span>
+      <span class="kafelek__opis">stan spraw per grupa (wolne / w toku / zakończone)</span>
+    </button>
+    <button class="kafelek" data-cel="sek-wsad">
+      <span class="kafelek__tytul">📥 Wsad → sprawy</span>
+      <span class="kafelek__opis">wklej listę zamówień, powstaną sprawy</span>
+    </button>
+    <button class="kafelek" data-cel="sek-konfig">
+      <span class="kafelek__tytul">⚙️ Konfiguracja</span>
+      <span class="kafelek__opis">parametry biznesowe</span>
+    </button>
+    <button class="kafelek" data-cel="sek-operatorzy">
+      <span class="kafelek__tytul">👥 Operatorzy</span>
+      <span class="kafelek__opis">kto pracuje, grupy, loginy forum</span>
+    </button>
+    <button class="kafelek" data-cel="sek-prompt">
+      <span class="kafelek__tytul">🧠 Prompt AI</span>
+      <span class="kafelek__opis">który prompt steruje silnikiem</span>
+    </button>
+  </div>
+
+  <!-- SEKCJE: pełny ekran, otwierane z menu -->
+  <section id="sek-rozmowy" class="koord-ekran" hidden>
+    <div class="koord-ekran__top">
+      <button class="btn btn--ghost btn--small btn-wroc">← Wróć</button>
+      <h2 class="card__title">Rozmowy — archiwum bramy WEM</h2>
+      <button class="btn btn--small" id="btn-reload-rozmowy">Odśwież</button>
+    </div>
+    <p class="card__hint">Pierwszy poziom = <b>zamówienie</b> (klucz domeny); drugi = klient/nadawca.
+      Rozwiń pozycję, by zobaczyć oś czasu: KLIENT i MY na przemian; duplikaty przygaszone.</p>
+    <div class="arch-filtry">
+      <span class="chips" id="arch-tryb">
+        <button class="chip chip--on" data-tryb="zam">po zamówieniu</button>
+        <button class="chip" data-tryb="klient">po kliencie</button>
+      </span>
+      <span class="chips" id="arch-kanaly">
+        <button class="chip chip--on" data-kanal="">wszystkie kanały</button>
+        <button class="chip" data-kanal="whatsapp">WhatsApp</button>
+        <button class="chip" data-kanal="email">mail</button>
+        <button class="chip" data-kanal="ebay">eBay</button>
+      </span>
+    </div>
+    <div id="rozmowy"></div>
+  </section>
+
+  <section id="sek-kolejka" class="koord-ekran" hidden>
+    <div class="koord-ekran__top">
+      <button class="btn btn--ghost btn--small btn-wroc">← Wróć</button>
+      <h2 class="card__title">Kolejka spraw</h2>
+    </div>
     <ul class="list" id="counts"></ul>
   </section>
 
-  <section class="card">
-    <h2 class="card__title">Wsad → sprawy</h2>
+  <section id="sek-wsad" class="koord-ekran" hidden>
+    <div class="koord-ekran__top">
+      <button class="btn btn--ghost btn--small btn-wroc">← Wróć</button>
+      <h2 class="card__title">Wsad → sprawy</h2>
+    </div>
     <p class="card__hint">Wklej listę zamówień (po linii). Numer i grupa rozpoznawane automatycznie.</p>
-    <textarea class="text-input" id="wsad" rows="6" placeholder="NrZam: 374593 | Germany | ..."></textarea>
+    <textarea class="text-input" id="wsad" rows="10" placeholder="NrZam: 374593 | Germany | ..."></textarea>
     <button class="btn btn--primary" id="btn-ingest">Załaduj wsad</button>
     <p class="message" id="ingest-msg"></p>
   </section>
 
-  <section class="card">
-    <h2 class="card__title">Konfiguracja</h2>
-    <label class="koord-row"><span>Autopilot — % spraw na noc</span>
+  <section id="sek-konfig" class="koord-ekran" hidden>
+    <div class="koord-ekran__top">
+      <button class="btn btn--ghost btn--small btn-wroc">← Wróć</button>
+      <h2 class="card__title">Konfiguracja</h2>
+    </div>
+    <label class="koord-row"><span>Automat — % spraw na noc</span>
       <input class="text-input" id="cfg-percent" type="number" min="0" max="100"></label>
     <label class="koord-row"><span>Woreczek — powrót po (godz.)</span>
       <input class="text-input" id="cfg-retry" type="number" min="1" max="24"></label>
@@ -35,8 +95,11 @@
     <p class="message" id="config-msg"></p>
   </section>
 
-  <section class="card">
-    <h2 class="card__title">Operatorzy</h2>
+  <section id="sek-operatorzy" class="koord-ekran" hidden>
+    <div class="koord-ekran__top">
+      <button class="btn btn--ghost btn--small btn-wroc">← Wróć</button>
+      <h2 class="card__title">Operatorzy</h2>
+    </div>
     <ul class="list" id="operators"></ul>
     <div class="koord-op-add">
       <input class="text-input" id="op-pid" placeholder="pid (np. emilia)">
@@ -48,36 +111,17 @@
     <p class="message" id="op-msg"></p>
   </section>
 
-  <section class="card">
-    <h2 class="card__title">Prompt sterujący AI</h2>
+  <section id="sek-prompt" class="koord-ekran" hidden>
+    <div class="koord-ekran__top">
+      <button class="btn btn--ghost btn--small btn-wroc">← Wróć</button>
+      <h2 class="card__title">Prompt sterujący AI</h2>
+    </div>
     <p class="card__hint">Wybierz prompt z repo albo wpisz własny adres URL. Pusty = domyślny z konfiguracji.</p>
     <select class="text-input" id="prompt-list"><option value="">— wybierz z repo —</option></select>
     <input class="text-input" id="prompt-url" placeholder="https://… adres promptu (.txt)">
     <button class="btn" id="btn-save-prompt">Ustaw prompt</button>
     <p class="card__hint">Aktualny: <span id="prompt-current">—</span></p>
     <p class="message" id="prompt-msg"></p>
-  </section>
-
-  <section class="card">
-    <h2 class="card__title">Autopilot nocny</h2>
-    <p class="card__hint">Pełna automatyka. Tryb forum „sucho" = nic nie idzie na forum (test). Globalny stop w env.</p>
-    <button class="btn btn--primary" id="btn-run-autopilot">Uruchom teraz (ręcznie)</button>
-    <pre id="autopilot-out" class="codeblock" hidden></pre>
-  </section>
-
-  <section class="card full-span">
-    <h2 class="card__title">Rozmowy — archiwum bramy WEM</h2>
-    <p class="card__hint">Cały ruch z bramy (WhatsApp / mail / eBay), sklejony po kliencie.
-      Rozwiń wątek, by zobaczyć oś czasu: KLIENT i MY na przemian; duplikaty przygaszone.</p>
-    <button class="btn btn--small" id="btn-reload-rozmowy">Odśwież</button>
-    <div id="rozmowy"></div>
-  </section>
-
-  <section class="card full-span">
-    <h2 class="card__title">Nocne „gotowce" — podgląd jakości AI</h2>
-    <p class="card__hint">Sprawy przeliczone przez autopilota. Rozwiń, by przeczytać, co AI proponuje (w trybie „sucho" nic nie poszło na forum).</p>
-    <button class="btn btn--small" id="btn-reload-gotowce">Odśwież</button>
-    <div id="gotowce"></div>
   </section>
 </main>
 {% endblock %}

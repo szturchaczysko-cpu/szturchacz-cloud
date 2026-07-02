@@ -336,18 +336,41 @@ async def koord_wa(request: Request):
 
 @app.get("/api/koord/rozmowy")
 async def koord_rozmowy(request: Request):
-    """Archiwum: lista wątków (ruch z bramy WEM sklejony po kliencie). Stare rekordy bez pól
-    spinających doliczane w locie z treści — zero migracji."""
+    """Archiwum, poziom 2: wątki po kliencie/nadawcy (opcjonalnie ?channel=whatsapp|email|ebay).
+    Stare rekordy bez pól spinających doliczane w locie z treści — zero migracji."""
     if not koordynator_of(request):
         return JSONResponse({"ok": False}, status_code=403)
     from .wspolne import archiwum
     msgs = await run_in_threadpool(deps.wa_inbox.recent, 500)
-    return {"ok": True, "watki": archiwum.zbuduj_watki(msgs)}
+    return {"ok": True, "watki": archiwum.zbuduj_watki(msgs, request.query_params.get("channel", ""))}
+
+
+@app.get("/api/koord/rozmowy/zamowienia")
+async def koord_rozmowy_zamowienia(request: Request):
+    """Archiwum, poziom 1 (klucz domeny): agregacja PO NUMERZE ZAMÓWIENIA (+ ?channel=)."""
+    if not koordynator_of(request):
+        return JSONResponse({"ok": False}, status_code=403)
+    from .wspolne import archiwum
+    msgs = await run_in_threadpool(deps.wa_inbox.recent, 500)
+    return {"ok": True, "zamowienia": archiwum.zbuduj_zamowienia(msgs, request.query_params.get("channel", ""))}
+
+
+@app.get("/api/koord/rozmowy/zamowienie")
+async def koord_rozmowa_zamowienia(request: Request):
+    """Archiwum: oś czasu jednego ZAMÓWIENIA (wszystkie kanały/klienci, chronologicznie)."""
+    if not koordynator_of(request):
+        return JSONResponse({"ok": False}, status_code=403)
+    zam = (request.query_params.get("zam") or "").strip()
+    if not zam:
+        return JSONResponse({"ok": False, "message": "Brak numeru zamówienia."}, status_code=400)
+    from .wspolne import archiwum
+    msgs = await run_in_threadpool(deps.wa_inbox.recent, 500)
+    return {"ok": True, "zam": zam, "wiadomosci": archiwum.zloz_zamowienie(msgs, zam)}
 
 
 @app.get("/api/koord/rozmowy/watek")
 async def koord_rozmowa(request: Request):
-    """Archiwum: oś czasu jednego wątku (in+out chronologicznie, duplikaty oflagowane)."""
+    """Archiwum: oś czasu jednego wątku klienta (in+out chronologicznie, duplikaty oflagowane)."""
     if not koordynator_of(request):
         return JSONResponse({"ok": False}, status_code=403)
     tid = (request.query_params.get("id") or "").strip()

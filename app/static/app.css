@@ -42,12 +42,26 @@
 .op-compose { display: flex; gap: var(--space-2); }
 .op-compose .text-input { margin-bottom: 0; }
 
-/* Panel koordynatora */
-.koord-grid {
-  display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4); padding: var(--space-4);
-  align-items: start;
+/* Zaplecze (kafelek Wieżowiec): menu kafelków → sekcje na pełnym ekranie */
+.koord-wrap { padding: var(--space-4); }
+.koord-kafelki {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); align-items: stretch;
 }
-@media (max-width: 760px) { .koord-grid { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .koord-kafelki { grid-template-columns: 1fr; } }
+.kafelek {
+  display: flex; flex-direction: column; gap: var(--space-2); text-align: left; cursor: pointer;
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-sm);
+  padding: var(--space-4); color: var(--text); font: inherit;
+}
+.kafelek:hover { border-color: var(--accent-dim); }
+.kafelek__tytul { font-weight: 600; font-size: var(--fs-lg, 1.05rem); }
+.kafelek__opis { color: var(--muted); font-size: var(--fs-sm); }
+.koord-ekran { max-width: 1100px; }
+.koord-ekran__top { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
+.koord-ekran__top .card__title { margin: 0; flex: 1; }
+.arch-filtry { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-3); }
+.chips { display: inline-flex; gap: var(--space-2); flex-wrap: wrap; }
+.chip--on { border-color: var(--accent); color: var(--text); }
 .koord-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-2); }
 .koord-row .text-input { width: 120px; margin-bottom: 0; }
 .koord-op-add { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }

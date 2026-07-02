@@ -8,6 +8,12 @@ async function api(path, body) {
   return r.json().catch(() => ({ ok: false, message: "Błąd sieci." }));
 }
 
+/* --- Nawigacja: menu kafelków ↔ sekcje na pełnym ekranie --- */
+function pokazEkran(id) {
+  $("menu").hidden = !!id;
+  document.querySelectorAll(".koord-ekran").forEach((s) => { s.hidden = (s.id !== id); });
+}
+
 function renderCounts(counts) {
   const ul = $("counts");
   ul.innerHTML = "";
@@ -54,7 +60,6 @@ async function load() {
   if (!s.ok) { location.reload(); return; }
   $("kpi-diamenty").textContent = "💎 " + (s.diamenty_dzis || 0) + " dziś";
   $("kpi-forum").textContent = "forum: " + (s.forum_mode || "—");
-  $("kpi-autopilot").textContent = "autopilot: " + (s.autopilot || "—");
   renderCounts(s.counts);
   renderOperators(s.operatorzy);
   $("cfg-percent").value = (s.config && s.config.autopilot_percent) || 0;
@@ -103,91 +108,104 @@ async function savePrompt() {
   if (r.ok) { $("prompt-current").textContent = r.current || "(domyślny z env)"; $("prompt-url").value = ""; }
 }
 
-async function loadGotowce() {
-  const r = await api("/api/koord/gotowce");
-  const box = $("gotowce");
-  box.innerHTML = "";
-  if (!r.ok || !(r.gotowce || []).length) { box.innerHTML = '<p class="empty">Brak gotowców. Uruchom autopilot.</p>'; return; }
-  r.gotowce.forEach((g) => {
-    const d = document.createElement("details");
-    d.className = "gotowiec";
-    const s = document.createElement("summary");
-    s.textContent = `${g.nrzam} · ${g.grupa} · score ${g.score}`;
-    const meta = document.createElement("div");
-    meta.className = "meta"; meta.textContent = g.wsad || "";
-    const pre = document.createElement("pre");
-    pre.className = "codeblock";
-    pre.textContent = g.gotowiec || "(brak treści)";
-    d.appendChild(s); d.appendChild(meta); d.appendChild(pre);
-    box.appendChild(d);
-  });
-}
+/* --- Rozmowy: archiwum WEM. Poziom 1 = zamówienie (klucz domeny), poziom 2 = klient. --- */
+const arch = { tryb: "zam", kanal: "" };
 
 function czasRozmowy(ts) {
   return ts ? new Date(ts * 1000).toLocaleString("pl-PL") : "—";
 }
 
+function liniaWiadomosci(m) {
+  const p = document.createElement("p");
+  p.className = "rozmowa-linia"
+    + (m.kierunek === "out" ? " rozmowa-linia--out" : "")
+    + (m.duplikat ? " rozmowa-linia--dup" : "");
+  const kto = m.kierunek === "out" ? "MY" : "KLIENT";
+  const kanal = m.channel ? " · " + m.channel : "";
+  p.textContent = `[${czasRozmowy(m.ts)}${kanal}] ${kto}${m.duplikat ? " (duplikat)" : ""}: ${m.text || "(pusta treść)"}`;
+  return p;
+}
+
+function pozycjaArchiwum(naglowek, meta, urlOsi) {
+  const d = document.createElement("details");
+  d.className = "gotowiec";
+  const s = document.createElement("summary");
+  s.textContent = naglowek;
+  const m = document.createElement("div");
+  m.className = "meta"; m.textContent = meta;
+  const body = document.createElement("div");
+  d.appendChild(s); d.appendChild(m); d.appendChild(body);
+  d.addEventListener("toggle", async () => {
+    if (!d.open || body.dataset.loaded) return;
+    body.dataset.loaded = "1";
+    const t = await api(urlOsi);
+    body.innerHTML = "";
+    (t.wiadomosci || []).forEach((w) => body.appendChild(liniaWiadomosci(w)));
+    if (!body.children.length) body.innerHTML = '<p class="empty">Pusto.</p>';
+  });
+  return d;
+}
+
 async function loadRozmowy() {
-  const r = await api("/api/koord/rozmowy");
   const box = $("rozmowy");
-  box.innerHTML = "";
-  if (!r.ok || !(r.watki || []).length) {
-    box.innerHTML = '<p class="empty">Brak rozmów — nic jeszcze nie wpadło z bramy WEM.</p>';
-    return;
-  }
-  r.watki.forEach((w) => {
-    const d = document.createElement("details");
-    d.className = "gotowiec";
-    const s = document.createElement("summary");
-    const zam = (w.order_refs || []).length ? " · zam " + w.order_refs.join(", ") : "";
-    s.textContent = `${w.channel} · ${w.klient} · ${w.liczba} wiad. (klient ${w.in} / my ${w.out})${zam}`;
-    const meta = document.createElement("div");
-    meta.className = "meta";
-    meta.textContent = "ostatnia: " + czasRozmowy(w.ostatnia_ts) + " · " + (w.ostatnia || "");
-    const body = document.createElement("div");
-    d.appendChild(s); d.appendChild(meta); d.appendChild(body);
-    d.addEventListener("toggle", async () => {
-      if (!d.open || body.dataset.loaded) return;
-      body.dataset.loaded = "1";
-      const t = await api("/api/koord/rozmowy/watek?id=" + encodeURIComponent(w.thread_id));
-      body.innerHTML = "";
-      (t.wiadomosci || []).forEach((m) => {
-        const p = document.createElement("p");
-        p.className = "rozmowa-linia"
-          + (m.kierunek === "out" ? " rozmowa-linia--out" : "")
-          + (m.duplikat ? " rozmowa-linia--dup" : "");
-        const kto = m.kierunek === "out" ? "MY" : "KLIENT";
-        p.textContent = `[${czasRozmowy(m.ts)}] ${kto}${m.duplikat ? " (duplikat)" : ""}: ${m.text || "(pusta treść)"}`;
-        body.appendChild(p);
-      });
-      if (!body.children.length) body.innerHTML = '<p class="empty">Pusty wątek.</p>';
+  box.innerHTML = '<p class="empty">Ładuję…</p>';
+  const q = arch.kanal ? "?channel=" + encodeURIComponent(arch.kanal) : "";
+  if (arch.tryb === "zam") {
+    const r = await api("/api/koord/rozmowy/zamowienia" + q);
+    box.innerHTML = "";
+    (r.zamowienia || []).forEach((z) => {
+      const naglowek = `${z.etykieta} · ${z.liczba} wiad. (klient ${z.in} / my ${z.out}) · ${z.kanaly.join("+")}`;
+      const meta = "klienci: " + (z.klienci.join(", ") || "—") + " · ostatnia: "
+        + czasRozmowy(z.ostatnia_ts) + " · " + (z.ostatnia || "");
+      const url = z.zam
+        ? "/api/koord/rozmowy/zamowienie?zam=" + encodeURIComponent(z.zam)
+        : "/api/koord/rozmowy/watek?id=" + encodeURIComponent(z.etykieta.replace("bez numeru · ", ""));
+      box.appendChild(pozycjaArchiwum(naglowek, meta, url));
     });
-    box.appendChild(d);
+    if (!box.children.length) box.innerHTML = '<p class="empty">Brak rozmów w tym widoku.</p>';
+  } else {
+    const r = await api("/api/koord/rozmowy" + q);
+    box.innerHTML = "";
+    (r.watki || []).forEach((w) => {
+      const zam = (w.order_refs || []).length ? " · zam " + w.order_refs.join(", ") : "";
+      const naglowek = `${w.channel} · ${w.klient} · ${w.liczba} wiad. (klient ${w.in} / my ${w.out})${zam}`;
+      const meta = "ostatnia: " + czasRozmowy(w.ostatnia_ts) + " · " + (w.ostatnia || "");
+      box.appendChild(pozycjaArchiwum(naglowek, meta, "/api/koord/rozmowy/watek?id=" + encodeURIComponent(w.thread_id)));
+    });
+    if (!box.children.length) box.innerHTML = '<p class="empty">Brak rozmów w tym widoku.</p>';
+  }
+}
+
+function wireChips(containerId, attr, onPick) {
+  const box = $(containerId);
+  box.querySelectorAll(".chip").forEach((ch) => {
+    ch.addEventListener("click", () => {
+      box.querySelectorAll(".chip").forEach((x) => x.classList.remove("chip--on"));
+      ch.classList.add("chip--on");
+      onPick(ch.dataset[attr] || "");
+    });
   });
 }
 
-async function runAutopilot() {
-  $("btn-run-autopilot").disabled = true;
-  const r = await api("/api/koord/autopilot/run", {});
-  $("btn-run-autopilot").disabled = false;
-  const out = $("autopilot-out");
-  out.hidden = false;
-  out.textContent = JSON.stringify(r, null, 2);
-  load();
-  loadGotowce();
-}
-
 window.addEventListener("DOMContentLoaded", () => {
+  // menu kafelków ↔ pełnoekranowe sekcje
+  document.querySelectorAll(".kafelek").forEach((k) => {
+    k.addEventListener("click", () => {
+      pokazEkran(k.dataset.cel);
+      if (k.dataset.cel === "sek-rozmowy" && !$("rozmowy").children.length) loadRozmowy();
+    });
+  });
+  document.querySelectorAll(".btn-wroc").forEach((b) => b.addEventListener("click", () => pokazEkran("")));
+
   $("btn-ingest").addEventListener("click", ingest);
   $("btn-save-config").addEventListener("click", saveConfig);
   $("btn-add-op").addEventListener("click", addOperator);
-  $("btn-run-autopilot").addEventListener("click", runAutopilot);
   $("btn-save-prompt").addEventListener("click", savePrompt);
   $("prompt-list").addEventListener("change", (e) => { if (e.target.value) $("prompt-url").value = e.target.value; });
-  $("btn-reload-gotowce").addEventListener("click", loadGotowce);
   $("btn-reload-rozmowy").addEventListener("click", loadRozmowy);
+  wireChips("arch-tryb", "tryb", (v) => { arch.tryb = v || "zam"; loadRozmowy(); });
+  wireChips("arch-kanaly", "kanal", (v) => { arch.kanal = v; loadRozmowy(); });
+
   load();
   loadPrompts();
-  loadGotowce();
-  loadRozmowy();
 });
