@@ -45,16 +45,28 @@ app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), na
 app.include_router(bestchudy_router)  # JEDYNE wpięcie pasa bestchudy we wspólny kod
 
 
+# CSP liczona raz: bazowo ramki zablokowane (default-src); gdy ustawiono V11_URL, wpuszczamy
+# ramkę WYŁĄCZNIE z domeny kontenera v11 (split view porównywarki — decyzja właściciela 2026-07-02).
+def _csp() -> str:
+    base = ("default-src 'self'; img-src 'self' data:; style-src 'self'; "
+            "script-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'")
+    if config.V11_URL:
+        o = urlparse(config.V11_URL)
+        if o.scheme == "https" and o.netloc:
+            base += f"; frame-src 'self' https://{o.netloc}"
+    return base
+
+
+_CSP = _csp()
+
+
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
-    response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; img-src 'self' data:; style-src 'self'; "
-        "script-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
-    )
+    response.headers["Content-Security-Policy"] = _CSP
     response.headers["Cache-Control"] = "no-cache" if request.url.path.startswith("/static/") else "no-store"
     if config.COOKIE_SECURE:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
