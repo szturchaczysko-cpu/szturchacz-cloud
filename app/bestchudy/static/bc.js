@@ -5,6 +5,7 @@
 
   const LIMIT_TEKSTU = 20000; // lustra limitów z logika.py — serwer odrzuca, my ostrzegamy wcześniej
   const LIMIT_TAG = 2000;
+  const KANAL_TRYBU = { odwrotny_wa: "WA", mail: "MAIL", ebay: "EBAY", forum: "FORUM" };
 
   async function api(path, body) {
     // Rozróżniamy DWIE awarie (diagnoza z produkcji, 2026-07-03): zerwane połączenie
@@ -46,7 +47,7 @@
     if (guzik.dataset.zakladka === "kalendarz") { odswiezKalendarz(); odswiezOceny(); }
   });
 
-  // --- Tryb (selektor) -----------------------------------------------------------
+  // --- Tryb (selektor) + SESJA rolki dla trybów odwrotnych ----------------------------
   let tryb = "standard";
   $("bc-tryby").addEventListener("click", (ev) => {
     const guzik = ev.target.closest("[data-tryb]");
@@ -54,6 +55,10 @@
     document.querySelectorAll("#bc-tryby .chip").forEach((c) => c.classList.remove("is-active"));
     guzik.classList.add("is-active");
     tryb = guzik.dataset.tryb;
+    // Tryb odwrotny = moment dodania SESJI kanału (uwagi operatorki): pokazujemy okienko rolki.
+    const odwrotny = tryb !== "standard";
+    $("sesja-rolka").hidden = !odwrotny;
+    if (odwrotny) $("rolka-kanal").textContent = KANAL_TRYBU[tryb] || "WA";
   });
 
   // --- Sklejka wsadu (ten sam algorytm co logika.sklej_wsad na serwerze) ------------
@@ -82,21 +87,100 @@
   ["wsad-panel", "koperta", "tag"].forEach((id) => $(id).addEventListener("input", odswiezPodglad));
   odswiezPodglad();
 
-  $("btn-kopiuj").addEventListener("click", async () => {
-    const s = sklejka();
-    if (!s) { $("wsad-status").textContent = "Pusty wsad — nie ma czego kopiować."; return; }
-    const blad = zaDlugi();
-    if (blad) { $("wsad-status").textContent = blad; return; } // NIE kopiujemy — v11 nie może dostać więcej niż chudy
+  async function doSchowka(tekst, gdzieOtworzyc) {
     try {
-      await navigator.clipboard.writeText(s);
-      $("wsad-status").textContent = "Skopiowane — wklej w ramkę v11 (ta sama sklejka idzie chudemu).";
+      await navigator.clipboard.writeText(tekst);
+      return true;
     } catch (e) {
-      $("wsad-status").textContent = "Przeglądarka zablokowała schowek — skopiuj z podglądu sklejki.";
-      document.querySelector(".bc-podglad").open = true;
+      if (gdzieOtworzyc) gdzieOtworzyc.open = true;
+      return false;
+    }
+  }
+
+  $("btn-kopiuj").addEventListener("click", async () => {
+    if (!sklejka()) { $("wsad-status").textContent = "Pusty wsad — nie ma czego kopiować."; return; }
+    const blad = zaDlugi();
+    if (blad) { $("wsad-status").textContent = blad; return; }
+    // W trybie odwrotnym wsad dla v11 niesie też blok ROLKA_START_[KANAL] (start w trybie kanału).
+    const ok = await doSchowka(tekstDlaV11(), document.querySelector(".bc-podglad"));
+    $("wsad-status").textContent = ok
+      ? "Skopiowane — wklej w ramkę v11 (chudy dostaje to samo: sklejkę + rolkę)."
+      : "Przeglądarka zablokowała schowek — skopiuj z podglądu sklejki.";
+  });
+
+  // --- ROLKA trybu odwrotnego: wzorzec (v11) + API (chudy, fallback wzorzec) ----------
+  let rolkaZApi = null;   // null = nie pobierano/pusta → chudy dostaje rolkę-wzorzec
+  let rolkaZApiZam = "";  // numer sprawy, dla której pobrano — inna sprawa unieważnia rolkę
+
+  function efektywnaRolka() {
+    if (tryb === "standard") return ""; // rolka NIE przecieka do trybu standard (uczciwość rekordu)
+    if (rolkaZApi !== null && rolkaZApiZam !== nrzam(sklejka())) {
+      rolkaZApi = null; // ręcznie podmieniona sprawa — rolka z API dotyczy poprzedniej
+      $("rolka-api-podglad").hidden = true;
+      $("rolka-status").textContent = "";
+    }
+    return rolkaZApi !== null ? rolkaZApi : $("rolka").value;
+  }
+
+  function tekstDlaV11() {
+    const s = sklejka();
+    if (tryb === "standard") return s;
+    const wzorzec = $("rolka").value.trim();
+    if (!wzorzec) return s;
+    // Start w trybie kanału: v11 wymaga we wsadzie bloku ROLKA_START_[KANAL] (prompt L2652-2656);
+    // komenda „SESJA WYNIK … – ROLKA_…" to odpowiedź W TRAKCIE sesji (§7.6.2), nie start.
+    return s + "\n\nROLKA_START_" + (KANAL_TRYBU[tryb] || "WA") + "\n" + wzorzec;
+  }
+
+  $("btn-rolka-api").addEventListener("click", async () => {
+    const guzik = $("btn-rolka-api");
+    if (guzik.disabled) return;
+    const zam = nrzam(sklejka());
+    if (!zam) { $("rolka-status").textContent = "Najpierw wsad z numerem zamówienia."; return; }
+    guzik.disabled = true;
+    $("rolka-status").textContent = "Pobieram z archiwum…";
+    try {
+      const w = await api("/bestchudy/api/rolka?zam=" + encodeURIComponent(zam));
+      if (!w.ok) {
+        rolkaZApi = null;
+        $("rolka-api-podglad").hidden = true;
+        $("rolka-status").textContent = w.message || "Archiwum niedostępne.";
+        return;
+      }
+      if (w.pusta) {
+        rolkaZApi = null;
+        $("rolka-api-podglad").hidden = true;
+        $("rolka-status").textContent = "Archiwum nie zwróciło rozmowy (sprawa sprzed 'daty x', " +
+          "numer spoza formatu archiwum albo starsza niż bufor) — chudy dostanie rolkę-wzorzec.";
+        return;
+      }
+      rolkaZApi = w.rolka;
+      rolkaZApiZam = zam;
+      $("rolka-api-podglad").textContent = w.rolka;
+      $("rolka-api-podglad").hidden = false;
+      $("rolka-status").textContent = "API: " + w.liczba + " linii — chudy weźmie tę rolkę." +
+        (w.przycieta ? " (długa rozmowa — przycięta od najstarszych)" : "");
+    } finally {
+      guzik.disabled = false;
     }
   });
 
-  // --- FEED: sprawy z wieżowczyka (B3) ----------------------------------------------
+  $("btn-kopiuj-rolke").addEventListener("click", async () => {
+    const tresc = $("rolka").value.trim();
+    if (!tresc) { $("rolka-status").textContent = "Pusta rolka-wzorzec — wklej rozmowę."; return; }
+    const zam = nrzam(sklejka());
+    if (!zam) { $("rolka-status").textContent = "Wsad bez numeru zamówienia — najpierw wsad."; return; }
+    const kanal = KANAL_TRYBU[tryb] || "WA";
+    // Komenda SESJI wg promptu v11 (L1723-1728): ROLKA_[KANAL] + treść MY/KLIENT.
+    // To odpowiedź, gdy v11 POPROSI o rolkę W TRAKCIE sesji; na starcie ROLKA_START idzie we wsadzie.
+    const komenda = "SESJA WYNIK " + zam + " – ROLKA_" + kanal + "\n" + tresc;
+    const ok = await doSchowka(komenda, null);
+    $("rolka-status").textContent = ok
+      ? "Komenda SESJA skopiowana — wklej w ramkę v11, gdy poprosi o rolkę w trakcie sesji."
+      : "Schowek zablokowany — zaznacz i skopiuj rolkę ręcznie.";
+  });
+
+  // --- FEED: sprawy z wieżowczyka ----------------------------------------------------
   function uzyjSprawy(s) {
     if (!s.ma_karte) {
       $("feed-status").textContent = "Podajnik nie zwrócił pełnej karty dla " + (s.nrzam || "?") +
@@ -107,6 +191,9 @@
     $("koperta").value = s.koperta_tekst || "";
     $("tag").value = ""; // tag siedzi już w karcie — drugi raz by się zdublował
     $("rolka").value = ""; // rolka poprzedniej sprawy nie może skleić się z nową
+    rolkaZApi = null;
+    $("rolka-api-podglad").hidden = true;
+    $("rolka-status").textContent = "";
     // NOWA sprawa = czysty stan chudego; bez tego „Zapisz" mógłby sparować werdykty nowej
     // sprawy z odpowiedzią chudego dla POPRZEDNIEJ (sfałszowany rekord badawczy).
     historia = [];
@@ -117,7 +204,7 @@
     odswiezPodglad();
     $("feed-lista").hidden = true;
     $("feed-status").textContent = "Wciągnięto sprawę " + (s.nrzam || "?") +
-      " (tag jest w karcie; pole TAG zostaw puste). Teraz: KOPIUJ WSAD → v11, POLICZ → chudy.";
+      " — teraz 🚀 ROZPOCZNIJ ANALIZĘ (obie strony dostaną ten sam wsad).";
   }
 
   function pokazSprawy(sprawy) {
@@ -148,13 +235,15 @@
     kontener.hidden = !sprawy.length;
   }
 
-  async function pobierzSprawy(zam) {
-    const guziki = [$("btn-nastepne"), $("btn-po-numerze")];
+  async function pobierzSprawy(zam, autoPierwszy) {
+    const guziki = [$("btn-pierwszy"), $("btn-nastepne"), $("btn-po-numerze")];
     if (guziki[0].disabled) return; // blokada in-flight jak przy pozostałych przyciskach
     guziki.forEach((g) => { g.disabled = true; });
     $("feed-status").textContent = "Pobieram z wieżowczyka…";
     try {
-      const w = await api("/bestchudy/api/sprawy?limit=10" + (zam ? "&zam=" + encodeURIComponent(zam) : ""));
+      const limit = autoPierwszy ? 1 : 10;
+      const w = await api("/bestchudy/api/sprawy?limit=" + limit +
+        (zam ? "&zam=" + encodeURIComponent(zam) : ""));
       if (!w.ok) {
         $("feed-lista").hidden = true;
         $("feed-status").textContent = w.message || "Podajnik niedostępny.";
@@ -165,7 +254,7 @@
         $("feed-status").textContent = zam ? "Nie znaleziono sprawy " + zam + "." : "Podajnik pusty.";
         return;
       }
-      if (w.sprawy.length === 1) { uzyjSprawy(w.sprawy[0]); return; }
+      if (autoPierwszy || w.sprawy.length === 1) { uzyjSprawy(w.sprawy[0]); return; }
       pokazSprawy(w.sprawy);
       $("feed-status").textContent = "Wybierz sprawę z listy (najnowsze na górze).";
     } finally {
@@ -176,17 +265,18 @@
   function poNumerze() {
     const zam = $("feed-zam").value.trim();
     if (!/^\d{4,9}$/.test(zam)) { $("feed-status").textContent = "Numer zamówienia to 4-9 cyfr."; return; }
-    pobierzSprawy(zam);
+    pobierzSprawy(zam, false);
   }
-  $("btn-nastepne").addEventListener("click", () => pobierzSprawy(""));
+  $("btn-pierwszy").addEventListener("click", () => pobierzSprawy("", true));
+  $("btn-nastepne").addEventListener("click", () => pobierzSprawy("", false));
   $("btn-po-numerze").addEventListener("click", poNumerze);
   $("feed-zam").addEventListener("keydown", (ev) => { if (ev.key === "Enter") poNumerze(); });
 
   // --- Chudy: rozmowa ------------------------------------------------------------
   let historia = [];        // [{role:"user"|"model", content}] — role jak w silniku skrzynki
   let ostatniPrompt = "";
-  let snapshotWsadu = null; // wsad z chwili POLICZ — to on idzie do rekordu porównania
-  let liczenie = false;     // blokada in-flight (POLICZ i dopisek dzielą jedną)
+  let snapshotWsadu = null; // wsad z chwili startu analizy — to on idzie do rekordu porównania
+  let liczenie = false;     // blokada in-flight (start i dopisek dzielą jedną)
 
   function dodajDymek(rola, tresc) {
     const dymek = document.createElement("div");
@@ -210,48 +300,66 @@
   async function policz(cialo, odNowa) {
     if (liczenie) return false;
     liczenie = true;
-    $("btn-policz").disabled = true;
+    $("btn-start").disabled = true;
     $("btn-dopisz").disabled = true;
-    $("wsad-status").textContent = "Chudy liczy…";
+    // Licznik czasu (uwaga operatorki: „chudy bardzo długo myśli") — operator widzi,
+    // że liczenie trwa; wydajność silnika = zgłoszona koordynatorowi (COORDYNACJA).
+    const start = Date.now();
+    $("wsad-status").textContent = "Chudy liczy… 0 s";
+    const tyk = setInterval(() => {
+      $("wsad-status").textContent = "Chudy liczy… " + Math.round((Date.now() - start) / 1000) + " s";
+    }, 1000);
     try {
       const w = await api("/bestchudy/api/policz", cialo);
+      const sek = Math.round((Date.now() - start) / 1000);
       if (!w.ok) { $("wsad-status").textContent = w.message || "Silnik niedostępny."; return false; }
       if (odNowa) {                    // czyścimy dopiero PO sukcesie — błąd sieci nie gubi rozmowy
         historia = [];
         $("chudy-rozmowa").textContent = "";
         resetOceny();
-        snapshotWsadu = { wsad: w.wejscie_bazowe || "", rolka: w.rolka || "" };
+        snapshotWsadu = { wsad: w.wejscie_bazowe || "", rolka: w.rolka || "",
+                          wzorzec: (tryb !== "standard" ? $("rolka").value : "") };
       }
       historia.push({ role: "user", content: w.wejscie });
       historia.push({ role: "model", content: w.odpowiedz });
       ostatniPrompt = w.prompt || "";
       dodajDymek("user", w.wejscie);
       dodajDymek("model", w.odpowiedz);
-      $("wsad-status").textContent = "Chudy odpowiedział (prompt: " + (w.prompt || "?") + ").";
+      $("wsad-status").textContent = "Chudy odpowiedział po " + sek + " s (prompt: " +
+        (w.prompt || "?") + ").";
       return true;
     } finally {
+      clearInterval(tyk);
       liczenie = false;
-      $("btn-policz").disabled = false;
+      $("btn-start").disabled = false;
       $("btn-dopisz").disabled = false;
     }
   }
 
-  $("btn-policz").addEventListener("click", () => {
+  // 🚀 ROZPOCZNIJ ANALIZĘ — obie strony NARAZ (uwagi operatorki): chudy startuje przez API,
+  // wsad dla v11 ląduje w schowku (do wklejenia w ramkę; „ręka robota" wklei sama po
+  // domknięciu cegły autologowania — rura /v11/ już działa).
+  $("btn-start").addEventListener("click", async () => {
     if (liczenie) return;
-    if (!sklejka()) { $("wsad-status").textContent = "Pusty wsad."; return; }
+    const s = sklejka();
+    if (!s) { $("wsad-status").textContent = "Pusty wsad."; return; }
     const blad = zaDlugi();
     if (blad) { $("wsad-status").textContent = blad; return; }
-    policz({
+    const schowekOk = await doSchowka(tekstDlaV11(), document.querySelector(".bc-podglad"));
+    await policz({
       wsad_panel: $("wsad-panel").value, koperta: $("koperta").value,
-      tag: $("tag").value, rolka: $("rolka").value,
+      tag: $("tag").value, rolka: efektywnaRolka(),
     }, true);
+    if (!schowekOk) {
+      $("wsad-status").textContent += " ⚠️ Schowek zablokowany — wsad dla v11 weź z podglądu.";
+    }
   });
 
   $("btn-dopisz").addEventListener("click", async () => {
     if (liczenie) return;
     const tekst = $("chudy-wiadomosc").value.trim();
     if (!tekst) return;
-    if (!historia.length) { $("wsad-status").textContent = "Najpierw POLICZ CHUDEGO na wsadzie."; return; }
+    if (!historia.length) { $("wsad-status").textContent = "Najpierw 🚀 ROZPOCZNIJ ANALIZĘ."; return; }
     const ok = await policz({ kontynuacja: tekst, historia: historia }, false);
     if (ok) $("chudy-wiadomosc").value = ""; // czyścimy tylko po sukcesie — błąd nie zjada tekstu
   });
@@ -296,7 +404,7 @@
     if (guzik.disabled) return;
     const ostatnia = historia.filter((m) => m.role === "model").slice(-1)[0];
     if (!ostatnia) {
-      $("zapis-status").textContent = "Najpierw POLICZ CHUDEGO — bez jego odpowiedzi nie ma czego porównywać.";
+      $("zapis-status").textContent = "Najpierw 🚀 ROZPOCZNIJ ANALIZĘ — bez odpowiedzi chudego nie ma czego porównywać.";
       $("zapis-status").classList.remove("ok");
       return;
     }
@@ -304,10 +412,13 @@
     try {
       const w = await api("/bestchudy/api/porownanie", {
         tryb: tryb,
-        // Wsad z chwili POLICZ (snapshot) — edycja pól PO policzeniu nie fałszuje rekordu.
+        // Wsad z chwili startu analizy (snapshot) — edycja pól PO starcie nie fałszuje rekordu.
         wsad: snapshotWsadu ? snapshotWsadu.wsad : sklejka(),
-        rolka: snapshotWsadu ? snapshotWsadu.rolka : $("rolka").value,
+        rolka: snapshotWsadu ? snapshotWsadu.rolka : efektywnaRolka(),
+        rolka_wzorzec: snapshotWsadu ? (snapshotWsadu.wzorzec || "") : "",
         chudy_odpowiedz: ostatnia.content,
+        // CAŁA sesja chudego do rekordu (uwaga operatorki: odrzut ma nieść pełną rozmowę).
+        chudy_rozmowa: historia,
         chudy_prompt: ostatniPrompt,
         tury_chudego: historia.filter((m) => m.role === "model").length,
         werdykt_v11: werdykty.v11,
@@ -330,15 +441,53 @@
   });
 
   // --- Listy: odrzuty / kalendarz / oceny -------------------------------------------
+  function dolaczPelnaSesje(kontener, rec) {
+    const pre = (tytul, tresc) => {
+      const naglowek = document.createElement("div");
+      naglowek.className = "meta";
+      naglowek.textContent = tytul;
+      kontener.appendChild(naglowek);
+      const blok = document.createElement("pre");
+      blok.className = "codeblock bc-sesja-pelna";
+      blok.textContent = tresc;
+      kontener.appendChild(blok);
+    };
+    if (rec.wsad) pre("WSAD (obie strony):", rec.wsad);
+    if (rec.rolka) pre("ROLKA (chudy):", rec.rolka);
+    if (rec.rolka_wzorzec && rec.rolka_wzorzec !== rec.rolka) {
+      pre("ROLKA-WZORZEC (v11):", rec.rolka_wzorzec);
+    }
+    const rozmowa = (rec.chudy_rozmowa || [])
+      .map((m) => (m.role === "user" ? "MY: " : "CHUDY: ") + m.content).join("\n\n");
+    pre("CAŁA SESJA CHUDEGO:", rozmowa || rec.chudy_odpowiedz || "(brak — rekord sprzed zmiany)");
+  }
+
   function pozycja(rec) {
     const div = document.createElement("div");
     div.className = "bc-pozycja";
-    const naglowek = document.createElement("div");
+    const glowa = document.createElement("div");
+    glowa.className = "bc-pozycja-glowa";
+    const naglowek = document.createElement("span");
     naglowek.textContent = "NrZam " + (rec.nrzam || "—") + " · " + rec.tryb +
       " · v11: " + (rec.werdykt_v11 === "zielony" ? "🟢" : "🔴") +
       " · chudy: " + (rec.werdykt_chudy === "zielony" ? "🟢" : "🔴") +
       " · " + (rec.operator_label || rec.operator_pid || "");
-    div.appendChild(naglowek);
+    glowa.appendChild(naglowek);
+    // Uwaga operatorki: odrzut ma nieść CAŁĄ sesję — dociągamy pełny rekord na kliknięcie.
+    const guzik = document.createElement("button");
+    guzik.type = "button";
+    guzik.className = "btn btn--small";
+    guzik.textContent = "Cała sesja";
+    guzik.addEventListener("click", async () => {
+      if (guzik.disabled) return;
+      guzik.disabled = true;
+      const w = await api("/bestchudy/api/porownanie?id=" + encodeURIComponent(rec.id));
+      if (!w.ok) { guzik.disabled = false; guzik.textContent = w.message || "Błąd."; return; }
+      guzik.remove();
+      dolaczPelnaSesje(div, w.porownanie);
+    });
+    glowa.appendChild(guzik);
+    div.appendChild(glowa);
     const meta = document.createElement("span");
     meta.className = "meta";
     meta.textContent = (rec.created_at || "").replace("T", " ").slice(0, 16) + " UTC";

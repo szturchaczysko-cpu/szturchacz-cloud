@@ -31,10 +31,23 @@ _STATIC = {"bc.css": "text/css; charset=utf-8", "bc.js": "text/javascript; chars
 
 
 def _v11_url() -> str:
+    # RURA Artura (V11_UPSTREAM): kontener pod NASZĄ domeną — ta sama domena = fundament
+    # „ręki robota" (nasz JS może sięgać do okna v11). Fallback: stary bezpośredni V11_URL.
+    if os.environ.get("V11_UPSTREAM", "").strip():
+        return "/v11/?embed=true"
     url = os.environ.get("V11_URL", "").strip()
     if url and "embed=" not in url:
         url += ("&" if "?" in url else "?") + "embed=true"
     return url
+
+
+def _skrot(rec: dict) -> dict:
+    """Rekord do LIST (odrzuty/kalendarz) bez ciężkich pól — pełną sesję dociąga
+    GET /api/porownanie?id= (uwaga operatorki: odrzut ma nieść całą rozmowę)."""
+    lekki = dict(rec)
+    for k in ("wsad", "rolka", "rolka_wzorzec", "chudy_odpowiedz", "chudy_rozmowa"):
+        lekki.pop(k, None)
+    return lekki
 
 
 def _same_origin(request: Request) -> bool:
@@ -131,6 +144,40 @@ async def sprawy(request: Request):
     return {"ok": True, "sprawy": sprawy_ui, "liczba": len(sprawy_ui)}
 
 
+# --- ROLKA z API (styk daj-rolkę; tryby odwrotne) -------------------------------------
+@router.get("/api/rolka")
+async def rolka_z_api(request: Request):
+    op, blad = _brama_api(request)
+    if blad:
+        return blad
+    zam = str(request.query_params.get("zam") or "").strip()
+    if not logika.poprawny_zam(zam):
+        return JSONResponse({"ok": False, "message": "Numer zamówienia to 4-9 cyfr."}, status_code=400)
+    from ..wspolne import styki
+    try:
+        wynik = styki.daj_rolke(zam=zam)
+    except Exception as e:  # noqa: BLE001 — pas bezpieczeństwa: nigdy surowy 500 bez JSON-a
+        return JSONResponse({"ok": False, "message": "Awaria archiwum po stronie serwera "
+                            f"({type(e).__name__}) — szczegóły w logach usługi (koordynator)."},
+                            status_code=502)
+    if not wynik.get("ok"):
+        return JSONResponse(wynik, status_code=502)
+    rolka = logika.zloz_rolke(wynik.get("wiadomosci"))
+    przycieta = False
+    if len(rolka) > logika.LIMIT_TEKSTU:
+        # Archiwum może oddać setki wiadomości; tniemy od NAJSTARSZYCH linii (koniec rozmowy
+        # najważniejszy) — inaczej operator utknie na „Rolka za długa" bez możliwości edycji.
+        linie = rolka.split("\n")
+        while linie and len("\n".join(linie)) > logika.LIMIT_TEKSTU:
+            linie.pop(0)
+        rolka = "\n".join(linie)
+        przycieta = True
+    # liczba = FAKTYCZNIE użyte linie (po odsiewie duplikatów/pustych), nie surowe rekordy
+    liczba = len([l for l in rolka.split("\n") if l.strip()]) if rolka.strip() else 0
+    return {"ok": True, "rolka": rolka, "liczba": liczba,
+            "pusta": not bool(rolka.strip()), "przycieta": przycieta}
+
+
 # --- Chudy (prawa strona) ----------------------------------------------------------
 @router.post("/api/policz")
 async def policz(request: Request):
@@ -202,7 +249,12 @@ async def zapisz_porownanie(request: Request):
     if not rec["chudy_odpowiedz"]:
         return JSONResponse({"ok": False, "message": "Brak odpowiedzi chudego — najpierw "
                             "POLICZ CHUDEGO."}, status_code=400)
-    bc_store.get_store().dodaj_porownanie(rec)
+    try:
+        bc_store.get_store().dodaj_porownanie(rec)
+    except Exception as e:  # noqa: BLE001 — pas bezpieczeństwa: zapis nie może dać surowego 500
+        return JSONResponse({"ok": False, "message": "Zapis porównania nie przeszedł po stronie "
+                            f"serwera ({type(e).__name__}) — spróbuj ponownie; jeśli się powtarza, "
+                            "zgłoś koordynatorowi."}, status_code=502)
     return {"ok": True, "id": rec["id"], "dzien": rec["dzien"], "odrzut": logika.czy_odrzut(rec)}
 
 
@@ -217,11 +269,26 @@ async def porownania(request: Request):
         return JSONResponse({"ok": False, "message": "Dzień w formacie RRRR-MM-DD."}, status_code=400)
     odrzuty = str(q.get("odrzuty") or "") in ("1", "true", "tak")
     magazyn = bc_store.get_store()
-    lst = magazyn.porownania(dzien=dzien, odrzuty=odrzuty, limit=200)
+    lst = [_skrot(r) for r in magazyn.porownania(dzien=dzien, odrzuty=odrzuty, limit=200)]
     # Liczby dnia z OSOBNEGO odczytu (pełen dzień, bez filtra odrzutów) — inaczej przy
     # odrzuty=1 „porównań" znaczyłoby „odrzutów", a bez dnia mieszałoby dni.
     liczby = logika.liczby_dnia(magazyn.porownania(dzien=dzien, limit=500)) if dzien else None
     return {"ok": True, "porownania": lst, "liczba": len(lst), "liczby": liczby}
+
+
+@router.get("/api/porownanie")
+async def porownanie_szczegol(request: Request):
+    """Pełny rekord (wsad + CAŁA sesja chudego) — dociągany do rozwinięcia w odrzutach."""
+    op, blad = _brama_api(request)
+    if blad:
+        return blad
+    pid = str(request.query_params.get("id") or "").strip()
+    if not logika.poprawny_id(pid):
+        return JSONResponse({"ok": False, "message": "Nieprawidłowy identyfikator."}, status_code=400)
+    rec = bc_store.get_store().porownanie(pid)
+    if not rec:
+        return JSONResponse({"ok": False, "message": "Nie ma takiego porównania."}, status_code=404)
+    return {"ok": True, "porownanie": rec}
 
 
 # --- Ocena na końcu sesji ------------------------------------------------------------

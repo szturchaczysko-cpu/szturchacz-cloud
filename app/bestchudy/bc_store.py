@@ -81,6 +81,12 @@ class _FileStore:
     def porownania(self, dzien: str = "", odrzuty: bool = False, limit: int = 200) -> list:
         return _filtruj(self._porownania.read(), dzien, odrzuty, min(limit, _LIMIT_ODCZYTU))
 
+    def porownanie(self, pid: str):
+        for r in self._porownania.read():
+            if r.get("id") == pid:
+                return r
+        return None
+
     def dodaj_ocene(self, rec: dict) -> None:
         dane = self._oceny.read()
         dane.insert(0, rec)
@@ -113,6 +119,10 @@ class _FirestoreStore:
         recs = [d.to_dict() for d in q.limit(_LIMIT_ODCZYTU).stream()]
         recs.sort(key=lambda r: r.get("created_at", ""), reverse=True)  # sort w Pythonie
         return _filtruj(recs, "", odrzuty, min(limit, _LIMIT_ODCZYTU))
+
+    def porownanie(self, pid: str):
+        doc = self._porownania.document(pid).get()
+        return doc.to_dict() if doc.exists else None
 
     def dodaj_ocene(self, rec: dict) -> None:
         self._oceny.document(rec["id"]).set(rec)

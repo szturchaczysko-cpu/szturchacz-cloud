@@ -29,7 +29,8 @@
       <div class="card">
         <div class="card__title">Sprawa</div>
         <div class="bc-przyciski bc-feed">
-          <button id="btn-nastepne" class="btn" type="button">⏭️ Z wieżowczyka (najnowsze)</button>
+          <button id="btn-pierwszy" class="btn btn--primary" type="button">⚡ POBIERZ CASE</button>
+          <button id="btn-nastepne" class="btn btn--small" type="button">⏭️ Lista najnowszych</button>
           <input id="feed-zam" class="text-input bc-zam" inputmode="numeric"
                  placeholder="nrZam" aria-label="Numer zamówienia">
           <button id="btn-po-numerze" class="btn btn--small" type="button">🔎 Po numerze</button>
@@ -55,15 +56,34 @@
           <label class="bc-pole">TAG (opcjonalnie — przy sprawie z podajnika siedzi już w karcie)
             <input id="tag" class="text-input" placeholder="c#:…;pz=…;next=…">
           </label>
-          <details class="bc-pole bc-rolka-zwin">
-            <summary class="meta">ROLKA z kanału (rzadko potrzebna — rozwiń)</summary>
-            <textarea id="rolka" class="text-input" rows="3" aria-label="Rolka z kanału"
-              placeholder="rozmowa MY/KLIENT wklejona ręcznie (albo później styk daj-rolkę)"></textarea>
-          </details>
         </div>
+
+        <!-- SESJA trybu odwrotnego (WA/mail/eBay/forum) — uwagi operatorki 2026-07-03:
+             tu skleja się rolkę dla v11, a chudy ściąga ją z API (fallback: wzorzec) -->
+        <div id="sesja-rolka" class="bc-sesja-rolka" hidden>
+          <div class="section-title">SESJA <span id="rolka-kanal">WA</span> — rolka rozmowy</div>
+          <div class="bc-wsad-siatka">
+            <label class="bc-pole">Rolka-wzorzec (wklej z kanału — trafi do v11; zapas dla chudego)
+              <textarea id="rolka" class="text-input" rows="5" aria-label="Rolka z kanału"
+                placeholder="rozmowa MY/KLIENT wklejona z kanału"></textarea>
+            </label>
+            <div class="bc-pole">Chudy — rolka z API (archiwum WEM)
+              <div class="bc-przyciski">
+                <button id="btn-rolka-api" class="btn btn--small" type="button">📡 Pobierz z API (po NrZam)</button>
+                <span id="rolka-status" class="meta"></span>
+              </div>
+              <pre id="rolka-api-podglad" class="codeblock bc-rolka-podglad" hidden></pre>
+            </div>
+          </div>
+          <div class="bc-przyciski">
+            <button id="btn-kopiuj-rolke" class="btn btn--small" type="button">📋 KOPIUJ ROLKĘ (komenda SESJA dla v11)</button>
+            <span class="meta">Sprawy sprzed „daty x": API nie zna starego WA — chudy dostanie wtedy rolkę-wzorzec.</span>
+          </div>
+        </div>
+
         <div class="bc-przyciski">
-          <button id="btn-kopiuj" class="btn btn--primary" type="button">📋 KOPIUJ WSAD (dla v11)</button>
-          <button id="btn-policz" class="btn btn--primary" type="button">▶️ POLICZ CHUDEGO</button>
+          <button id="btn-start" class="btn btn--primary" type="button">🚀 ROZPOCZNIJ ANALIZĘ (v11 + chudy)</button>
+          <button id="btn-kopiuj" class="btn btn--small" type="button">📋 KOPIUJ WSAD (dla v11)</button>
           <span id="nrzam-znacznik" class="badge">NrZam: —</span>
           <span id="wsad-status" class="meta"></span>
         </div>

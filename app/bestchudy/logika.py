@@ -97,7 +97,11 @@ def nowe_porownanie(d: dict, operator: dict) -> dict:
         "tryb": tryb if tryb in TRYBY else "standard",
         "wsad": wsad,
         "rolka": przytnij(d.get("rolka")),
+        # Przy trybie odwrotnym v11 widzi wzorzec, a chudy rolkę z API — rekord niesie OBIE,
+        # inaczej werdyktu v11 nie da się potem odtworzyć.
+        "rolka_wzorzec": przytnij(d.get("rolka_wzorzec")),
         "chudy_odpowiedz": przytnij(d.get("chudy_odpowiedz"), 40000),
+        "chudy_rozmowa": pelna_rozmowa(d.get("chudy_rozmowa")),
         "chudy_prompt": przytnij(d.get("chudy_prompt"), 200),
         "tury_chudego": _bezpieczny_int(d.get("tury_chudego")),
         "werdykt_v11": d.get("werdykt_v11"),
@@ -167,10 +171,57 @@ def zloz_koperte(wpisy) -> str:
 # Lustro walidacji podajnika; re.ASCII — bez niego \d łapie cyfry Unicode (np. arabskie),
 # które przechodzą do SQL i kończą się mylącym 502.
 _ZAM_FEED = re.compile(r"^\d{4,9}$", re.ASCII)
+_ID_REC = re.compile(r"^[0-9a-f]{32}$", re.ASCII)
 
 
 def poprawny_zam(zam) -> bool:
     return bool(_ZAM_FEED.match(str(zam or "").strip()))
+
+
+def poprawny_id(pid) -> bool:
+    return bool(_ID_REC.match(str(pid or "").strip()))
+
+
+def zloz_rolke(wiadomosci) -> str:
+    """Rolka ze styku daj-rolkę (archiwum WEM) → tekst MY/KLIENT, jak wkleja się do v11.
+    Duplikaty (flaga archiwum) pomijane; kolejność chronologiczna jak z archiwum.
+    UWAGA (uwaga operatorki): sprawy sprzed „daty x" nie istnieją w archiwum (stare WA
+    bez dostępu) — wtedy chudy dostaje rolkę-wzorzec wklejoną ręcznie (fallback w UI)."""
+    if not isinstance(wiadomosci, list):
+        return ""
+    linie = []
+    for w in wiadomosci:
+        if not isinstance(w, dict) or w.get("duplikat"):
+            continue
+        tekst = oczysc(w.get("text"))
+        if not tekst:
+            continue
+        kto = "MY" if w.get("kierunek") == "out" else "KLIENT"
+        linie.append(kto + ": " + tekst)
+    return "\n".join(linie)
+
+
+def pelna_rozmowa(historia) -> list:
+    """Pełna sesja chudego do rekordu porównania (uwaga operatorki: odrzut ma nieść CAŁĄ
+    rozmowę — „czemu zostało odrzucone", nie samo krótkie info).
+    Budżet ŁĄCZNY 250000 znaków (bezpiecznik: dokument Firestore ma twardy limit ~1 MiB;
+    bez budżetu 40×20000 + wsad + odpowiedź przekracza go przy polskich znakach i zapis
+    przepada). Tniemy od NAJSTARSZYCH — finał sesji (to, czego dotyczy werdykt) zawsze zostaje."""
+    if not isinstance(historia, list):
+        return []
+    czysta = []
+    for m in historia[-40:]:  # od KOŃCA — najnowsza wymiana nie może wypaść
+        if (isinstance(m, dict) and m.get("role") in ("user", "model")
+                and isinstance(m.get("content"), str)):
+            czysta.append({"role": m["role"], "content": m["content"][:20000]})
+    budzet = 250000
+    wynik = []
+    for m in reversed(czysta):
+        budzet -= len(m["content"])
+        if budzet < 0:
+            break
+        wynik.append(m)
+    return list(reversed(wynik))
 
 
 def nowa_ocena(d: dict, operator: dict, liczby: dict) -> dict:
