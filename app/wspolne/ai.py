@@ -10,6 +10,7 @@ Silnik AI (Vertex/Gemini) za prostym interfejsem + ZAŚLEPKA do pracy lokalnej b
 """
 from __future__ import annotations
 
+import hashlib
 import logging
 import os
 import threading
@@ -152,27 +153,57 @@ class StubProvider:
 class VertexProvider:
     """
     Prawdziwy dostawca (Vertex/Gemini). Pakiet ładowany leniwie — apka działa lokalnie bez niego.
-    Rotacja projektów GCP (rozłożenie limitów) + łańcuch fallbacku modeli + retry na 429/503.
+    Projekt GCP wybierany per ROZMOWA (nie per wywołanie): kolejne tury tej samej rozmowy idą
+    do tego samego projektu, więc identyczny prefiks żądania (prompt systemowy + dotychczasowa
+    historia) trafia w implicit cache Vertexa — cache liczy się osobno per projekt, trafienie
+    = 90% rabatu na wejściu i szybsza odpowiedź. Rozłożenie limitów zostaje: różne rozmowy
+    rozrzucane (hash) po projektach, a projekt po 429/503 dostaje CHŁODZENIE (przez minutę
+    omijany, zamiast palić próbę co turę). Projekt/region przypięte pełną nazwą zasobu w samym
+    żądaniu — globalny vertexai.init nie decyduje, więc równoległe wątki się nie podmieniają.
     """
 
     name = "vertex"
     # Modele zgodne z tym, czego używała stara apka (allowed_models).
     FALLBACK_CHAIN = ["gemini-2.5-pro", "gemini-3-pro-preview"]
+    _CHLODZENIE_S = 60.0  # kwoty Vertexa liczą się per minuta
 
     def __init__(self, project_ids: List[str], location: str):
         self._projects = project_ids
         self._location = location
-        self._idx = 0
+        self._chlodzenie: Dict[str, float] = {}  # projekt -> do kiedy omijać (po 429/503)
+        self._init_zrobiony = False
 
-    def _init_vertex(self, project: str):
+    def _init_vertex(self):
+        """Jednorazowa inicjalizacja SDK (poświadczenia/domyślne); projekt per żądanie
+        i tak jedzie w pełnej nazwie zasobu, nie w tym globalnym stanie."""
         import vertexai  # leniwy import — może nie być lokalnie
-        vertexai.init(project=project, location=self._location)
+        if not self._init_zrobiony:
+            vertexai.init(project=self._projects[0], location=self._location)
+            self._init_zrobiony = True
+
+    def _projekt_dla(self, messages: List[dict]) -> int:
+        """Indeks projektu stały dla całej rozmowy. Kotwica = PIERWSZA wiadomość: historia
+        rośnie z każdą turą, ale początek się nie zmienia, więc cała rozmowa trzyma się
+        jednego projektu, a nowa rozmowa (inny wsad) trafia hashem gdzie indziej."""
+        kotwica = messages[0].get("content", "") if messages else ""
+        skrot = hashlib.sha1(kotwica.encode("utf-8", "replace")).hexdigest()
+        return int(skrot, 16) % len(self._projects)
+
+    def _wybierz_projekt(self, idx_bazowy: int) -> str:
+        """Projekt rozmowy, a gdy ten chłodzi po limicie — najbliższy wolny sąsiad."""
+        teraz = time.time()
+        n = len(self._projects)
+        for k in range(n):
+            p = self._projects[(idx_bazowy + k) % n]
+            if self._chlodzenie.get(p, 0.0) <= teraz:
+                return p
+        return self._projects[idx_bazowy % n]  # wszystkie chłodzą → wracaj do bazowego
 
     def respond(self, system_prompt: str, messages: List[dict], *, temperature: float = 0.0) -> str:
         from vertexai.generative_models import Content, GenerativeModel, Part  # leniwy import
 
-        project = self._projects[self._idx % len(self._projects)]
-        self._idx += 1
+        self._init_vertex()
+        idx_bazowy = self._projekt_dla(messages)
         history = [
             Content(role=("user" if m["role"] == "user" else "model"),
                     parts=[Part.from_text(m["content"])])
@@ -181,19 +212,26 @@ class VertexProvider:
         last_err: Optional[Exception] = None
         for model_name in [self.FALLBACK_CHAIN[0]] + self.FALLBACK_CHAIN[1:]:
             for attempt in range(3):
+                project = self._wybierz_projekt(idx_bazowy)
                 try:
-                    self._init_vertex(project)
-                    model = GenerativeModel(model_name, system_instruction=system_prompt)
+                    zasob = (f"projects/{project}/locations/{self._location}"
+                             f"/publishers/google/models/{model_name}")
+                    model = GenerativeModel(zasob, system_instruction=system_prompt)
                     resp = model.generate_content(
                         history, generation_config={"temperature": temperature})
+                    uz = getattr(resp, "usage_metadata", None)
+                    log.info("[ai] projekt=%s model=%s tokeny: prompt=%s cache=%s odpowiedz=%s",
+                             project, model_name,
+                             getattr(uz, "prompt_token_count", "?"),
+                             getattr(uz, "cached_content_token_count", "?"),
+                             getattr(uz, "candidates_token_count", "?"))
                     return resp.text
                 except Exception as e:  # noqa: BLE001
                     last_err = e
                     msg = str(e).lower()
                     if any(k in msg for k in ("429", "503", "quota", "resource")):
+                        self._chlodzenie[project] = time.time() + self._CHLODZENIE_S
                         time.sleep(min(2.0 * (attempt + 1), 6.0))
-                        project = self._projects[self._idx % len(self._projects)]
-                        self._idx += 1
                         continue
                     break  # błąd nie-przejściowy → spróbuj kolejnego modelu
         raise RuntimeError(f"Vertex niedostępny po fallbackach: {last_err}")
