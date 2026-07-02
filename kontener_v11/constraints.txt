@@ -32,7 +32,7 @@ google-cloud-firestore==2.27.0
 google-cloud-resource-manager==1.17.0
 google-cloud-storage==3.9.0
 google-crc32c==1.8.0
-google-genai==1.47.0
+google-genai==1.66.0  # aiplatform 1.148.1 na py>=3.10 wymaga >=1.66,<2 (kontener=py3.11; pin 1.47 dzialal tylko na py3.9)
 google-generativeai==0.8.6
 google-resumable-media==2.8.2
 googleapis-common-protos==1.75.0
