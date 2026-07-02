@@ -216,7 +216,10 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
 - Schemat „propozycja automatu" + konsumpcja przez bramkę operatora (kontrakt styku).
 - Schemat/panel odrzutów + komentowanie; push-back-do-woreczka — czy/jak.
 - Brama DEV/PROD: WhatsApp leci przez DEV, mail przez PROD — konsolidacja (czeka na Magdę/Krzyśka).
-- eBay OAuth — zablokowany (zły `state` w linkach Krzyśka → token pod śmieciowym kluczem; do poprawy).
+- ✅ eBay ODBLOKOWANY (2026-07-02, Krzysiek): webhook eBay jest per APLIKACJA (nie per konto);
+  przepięli w bazie endpointy wszystkich kont na wspólny — ruch wszystkich kont ma płynąć, nowe
+  konta będą działać od razu. ZOSTAJE: push eBay niesie TYLKO `body` (bez buyerNick/konta/id/ts)
+  → po kliencie „nieprzypisane"; ratuje agregacja po nrZam. Prośba o pola dopisana do listu.
 
 ## REGULAMIN WSPÓŁPRACY (dwie sesje, zero patchera Pulpitu — wszystko na Gicie)
 AUTONOMIA I BRAMKI (zatwierdzone 2026-07-02): Sylwia jedzie AUTONOMICZNIE wewnątrz swojego pasa
