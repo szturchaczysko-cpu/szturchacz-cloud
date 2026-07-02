@@ -12,10 +12,29 @@ zamawia kuriera (JSON awizacji → apka Eweliny, faza 1 UPS skrzynia).
 Operatorzy = TYLKO telefony, reklamacje, „czy szturchać", nie-automaty.
 **Faza 1 = bramka akceptacji operatora (zielony/czerwony)** przed realną akcją (wzorzec sucho→realne).
 
-## PODZIAŁ PASÓW
-AKTUALNY podział = sekcja niżej „SKRZYNKA SZTURCHACZOVA + BESTCHUDY → PODZIAŁ" (2026-07-02):
-**ARTUR = skrzynka** (brama WEM, archiwum, wieżowczyk, kanały, silnik chudego),
-**SYLWIA = bestchudy** (porównywarka v11‖chudy w module `app/bestchudy/` + kontener v11).
+## MAPA EKRANÓW I GRANICE — ZATWIERDZONE przez właściciela 2026-07-02
+Granica projektów pokrywa się z kafelkami Pulpitu 1:1:
+- **Kafelek SZTURCHACZ = PRACA — buduje SYLWIA.** Ten sam adres, zawartość ewoluuje:
+  porównywarka bestchudy (v11‖chudy) → bramka nadzoru automatu → podgląd fullautomatu.
+  Starego ekranu czatu NIE utrzymujemy (zręby po przenosce ze Streamlita = DO ROZBIÓRKI).
+- **Kafelek WIEŻOWIEC = ZAPLECZE — buduje ARTUR.** Wieżowczyk (kolejka spraw chronologicznie
+  + pole „odwrotny zam" + woreczek wpadów WEM) i panel koordynatora (konfiguracja, raporty,
+  zakładka „ROZMOWY" = archiwum WEM) SKLEJONE jako zakładki jednego widoku, za rolą koordynatora.
+  Później dochodzi rozrzutnik. (Stary Wieżowiec rozchodzi się: karmienie→wieżowczyk,
+  przeliczanie→silniki, priorytety→rozrzutnik, zarządzanie→panel.)
+- POD SPODEM rury ARTURA (brama WEM, archiwum, silnik chudego, wysyłka z bezpiecznikiem) —
+  ekran Sylwii korzysta z nich WYŁĄCZNIE przez 4 styki, nie dotyka ich.
+- FUNDAMENTY ZOSTAJĄ (działają): SSO/logowanie, motyw, warstwa zapisu, klient forum, odbiór
+  z bramy WEM + archiwum, bezpieczniki-przełączniki. BACKUP całej budowy = STREAMLIT (produkcja),
+  nie stare zręby cloud.
+- **FULLAUTOMAT wbudowany w konstrukcję:** bezpiecznik = zawór NA RURZE wysyłkowej (poza silnikiem
+  i poza promptem). Fullautomat = otwarcie zaworu (przełącznik, nie przebudowa), STOPNIOWO per
+  kanał/typ sprawy; eBay i kurierzy bramkowane najdłużej. Ekran nie znika — zmienia rolę
+  z bramki na podgląd (historia per case zostaje na zawsze).
+- FAZY: A) Artur: Rozmowy+gniazdo modułu; Sylwia: rozpoznanie+plan kontenera v11; właściciel:
+  wiadomość do Krzyśka → B) Sylwia: porównywarka na ręcznym wklejaniu + kontener v11; Artur:
+  wieżowczyk+styki → C) spięcie styków + wysyłka z zaworem (tylko NOWY numer WA) → D) „data x":
+  stopniowe otwieranie zaworów.
 Cokolwiek na styku → zapisz w „STYKI/KONTRAKTY" ZANIM powstanie kod.
 
 ## SKRZYNKA SZTURCHACZOVA + BESTCHUDY — mapa całości (2026-07-01, wg wizji właściciela)
@@ -153,6 +172,11 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-02: **ZATWIERDZONE przez właściciela**: mapa ekranów (kafelek Szturchacz=PRACA/Sylwia,
+  kafelek Wieżowiec=ZAPLECZE/Artur, zręby streamlitowe do rozbiórki, backup=Streamlit) + model
+  autonomii (4 bramki) + Rozmowy jako zakładka zaplecza + Sylwia startuje świeżą sesją (Fable 5).
+  Archiwum WEM scalone do main; gniazdo `app/bestchudy/` postawione przez koordynatora
+  (Sylwia NIE dotyka wspólnych plików — wypełnia swój katalog).
 - 2026-07-02: Rozpis bestchudy = moduł WEWNĄTRZ szturchacz-cloud (5 pkt w sekcji PODZIAŁ wyżej);
   wcześniejszy pomysł „osobna apka z własnym adresem" WYCOFANY (sprzeczny z „wprowadzić tam").
   Archiwum WEM: zbudowane, czeka na gałęzi `skrzynka/archiwum-rozmow` — scalenie po starcie Sylwii.
@@ -188,6 +212,13 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
 - eBay OAuth — zablokowany (zły `state` w linkach Krzyśka → token pod śmieciowym kluczem; do poprawy).
 
 ## REGULAMIN WSPÓŁPRACY (dwie sesje, zero patchera Pulpitu — wszystko na Gicie)
+AUTONOMIA I BRAMKI (zatwierdzone 2026-07-02): Sylwia jedzie AUTONOMICZNIE wewnątrz swojego pasa
+(rozpis bestchudy) — właściciel NIE zatwierdza pracy w trakcie. Bramki właściciela/koordynatora
+są CZTERY: (1) każde scalenie do main, (2) każde wdrożenie, (3) każdy STYK (uzgodnienie tu przed
+kodem), (4) WYJŚCIE POZA ROZPIS — sesja ma wtedy STANĄĆ i zgłosić, nie improwizować.
+Przełomy MELDOWANE, nie bramkowane: kamienie milowe dopisuj do DECYZJE (właściciel podgląda).
+MODELE SESJI: model wybieramy na starcie sesji i jedziemy nim do końca; zmiana modelu = NOWA
+sesja (tanie — kontekst żyje w repo, nie w oknie). Sesja Sylwii: świeża, na Fable 5.
 ROLE:
 - **Koordynator = Artur.** Scala PR do `main`, ustala kolejność, **deployuje (TYLKO z `main`)**. „Kto akceptuje".
 - **Dominujący** = kto w DANYM temacie ma priorytet (jego patch wchodzi pierwszy). Rola ZMIENNA,
