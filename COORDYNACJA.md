@@ -154,8 +154,12 @@ chudy autonomiczny, ale podgląd + historia per case zostają); v11 na Cloud Run
     uzasadnienie, decyzja:null, komentarz:null, decydent:null, decyzja_at:null}`.
     Otwarte: kto wykonuje po `zielony` (automat poll vs worker), idempotencja, podtypy „czerwony"
     („do poprawy" vs „wyślij jednak").
-  - STRONA BRAMKI (Sylwia): ⬜ TODO — jakich pól potrzebuje do renderu zielony/czerwony + panel
-    odrzutów + komentarz.
+  - STRONA BRAMKI (Sylwia, 2026-07-02): draft Artura POKRYWA potrzeby renderu zielony/czerwony
+    + panelu odrzutów + komentarza (używam: id, created_at, status, test_mode, sprawa{nrZam,pz,grupa,
+    kanal_zrodlo}, typ, akcja{kanal,recipient,tresc|awizacja}, kontekst{rolka_skrot,fakty},
+    uzasadnienie, decyzja/komentarz/decydent/decyzja_at). PROSZĘ DOŁOŻYĆ 2 pola: `silnik` ("v11"|"chudy")
+    i opcjonalne `porownanie_id` (spięcie z werdyktami porównywarki bestchudy). Podtypy „czerwony":
+    głosuję za dwoma („do poprawy" vs „odrzuć") — „wyślij jednak" to zielony po edycji, nie czerwony.
   - UZGODNIONE: ⬜ (puste; domykamy po OBU PR). **Dopóki nie domknięte — nikt nie koduje swojej strony.**
 
 ## PROJEKTY (Artur↔Sylwia — rejestr; koordynator prowadzi)
@@ -238,6 +242,19 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   odrzuty/kalendarz zbiera bestchudy. Długofalowo nic nie tracimy: automatem będzie CHUDY (za
   zaworem), v11 jest WZORCEM-nauczycielem, nie przyszłym automatem. Lokalizacja plików kontenera:
   domyślnie katalog `kontener_v11/` w tym repo — chyba że strona Sylwii zgłosi inaczej.
+- 2026-07-02: [SYLWIA] **FAZA A WYKONANA: rozpoznanie + plan kontenera v11** → `app/bestchudy/PLAN.md`
+  (gałąź `bestchudy/rozpoznanie-plan-v11`). Rozpoznanie 7-agentowe z adwersarialną weryfikacją
+  (silnik v11 + prompt v1_11 + main tego repo + stary Wieżowiec, cytaty plik:linia).
+  REKOMENDACJA: kontener v11 = PORT logiki 1:1 do małego FastAPI (nie Streamlit as-is) — „wołany
+  przez apkę" wymaga API, a bezpiecznik na FORUM_WRITE i tak wymusza zmianę kodu; prompt 1:1 jako
+  plik + env override; świadome odstępstwa wylistowane w PLAN.md §2. STYK FEED — strona Sylwii
+  NIE potwierdza formatu 1:1: `suchy_wsad` identyfikuje sprawę i niesie tag (snapshot OK), ale NIE
+  zastępuje WSADU PANEL dla v11 — braki m.in. Delivered (KRYTYCZNE, blokada kontaktu), INDEX,
+  listy przewozowe, TYP_KURIERA, LOGIN/NICK eBay, nick sprzedawcy, KOPERTA/COP# (bez niej sprawy
+  bez tagu bootstrapują) — pełna tabela + 2 opcje kontraktu w PLAN.md §5; porównywarka startuje
+  na ręcznym wklejaniu, więc fazy B to nie blokuje. Pytania-bramki do właściciela/koordynatora:
+  PLAN.md §8 (m.in. gdzie kod kontenera; kto wykonuje wpis forum po zielonym; pamięć forum;
+  dostęp push dla konta sylwiaautossilniki — dziś tylko odczyt, a regulamin każe pushować często).
 - 2026-07-02: [ARTUR] **WIEŻOWCZYK v1 zbudowany** (kafelek w zapleczu): surowy wsad spraw z bazy
   franciszkańskiej przez WSPÓLNY silnik (`app/wspolne/klient_baz.py` → db-broker/silnik_baz;
   READ-ONLY, wejścia regex-whitelist). Źródło wg atlasu: `STEEPC.dbo.v_austachStatusProsty`
