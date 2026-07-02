@@ -4,7 +4,8 @@ Apka-kafelek ekosystemu Pulpit. Jeden serwis FastAPI, jedna wspólna kolejka spr
 dwa widoki nad nią: **operator** (dzień) i **koordynator + autopilot** (noc).
 
 ## START KAŻDEJ SESJI (obowiązkowo, zanim cokolwiek zrobisz)
-Przeczytaj **`COORDYNACJA.md`** — wspólny mózg sesji Artura i Sylwii: cel, podział pasów,
+Najpierw `git pull` (świeży stan wspólnego mózgu — druga sesja mogła dopisać ustalenia).
+Potem przeczytaj **`COORDYNACJA.md`** — wspólny mózg sesji Artura i Sylwii: cel, podział pasów,
 styki-kontrakty, decyzje, regulamin. Nie wymyślaj rozwiązań na coś, co tam już ustalone.
 **Sesja BESTCHUDY (Sylwia):** twój zakres = COORDYNACJA sekcja „PODZIAŁ" (rozpis 5 pkt) —
 pracujesz WYŁĄCZNIE w `app/bestchudy/` + kolekcje `bc_*` + kontener v11; wspólnych plików nie
