@@ -24,6 +24,15 @@ from typing import List
 
 KONTRAKT = "wem-v0"  # cienki push bramy: {channel, data:{body,sender,recipient,subject}}
 
+# Nasze skrzynki nadawcze (brama WEM / IMAP). Mail OD nich = NASZA strona rozmowy (kierunek=out) —
+# przygotowanie pod monitoring folderu WYSŁANE u Krzyśka (jego uwaga: przyjdą oznaczone jak IN).
+# Nadpisywalne env WEM_NASZE_SKRZYNKI (adresy po przecinku).
+import os as _os
+NASZE_SKRZYNKI = {a.strip().lower() for a in _os.environ.get(
+    "WEM_NASZE_SKRZYNKI",
+    "sav@pmgtechnik.de,magda@pmgtechnik.de,contact@pmgtechnik.de,biuro_info@autossilniki.pl"
+).split(",") if a.strip()}
+
 _NR_ZAM = re.compile(r"(?<!\d)(\d{6})(?!\d)")  # nrZam w domenie = 6 cyfr (374593, 400112…)
 _DEDUP_OKNO_S = 600  # okno klucza zastępczego; łapie retransmisje i podwójny forward DEV+PROD.
 # Świadomy kompromis: identyczna treść na granicy okien da DWA klucze (przepuszczony duplikat),
@@ -56,6 +65,11 @@ def order_refs(text) -> List[str]:
 
 
 def klucz_dedup(rec: dict) -> str:
+    # PRAWDZIWE id wiadomości (wamid/message-id — brama dołoży wg backlogu) bije wszystko:
+    # deduplikacja robi się żelazna. Hash treści+okno zostaje TYLKO jako zastępnik bez id.
+    mid = str(rec.get("msg_id") or "").strip()
+    if mid:
+        return "id:" + hashlib.sha1(f'{rec.get("channel")}|{mid}'.encode()).hexdigest()[:16]
     baza = f'{rec.get("channel")}|{strona_klienta(rec)}|{rec.get("kierunek")}|{str(rec.get("text") or "")[:500]}'
     okno = int(rec.get("ts") or time.time()) // _DEDUP_OKNO_S
     return hashlib.sha1(f"{baza}|{okno}".encode()).hexdigest()[:16]
@@ -64,6 +78,9 @@ def klucz_dedup(rec: dict) -> str:
 def wzbogac(rec: dict) -> dict:
     """Pola spinające dla rekordu już sparsowanego (parsuj_wa / rekord_wyslany).
     Wołane przy zapisie; przeliczalne później z `raw` (migracja = re-parse, nie przebudowa)."""
+    nad = str(rec.get("sender") or "").strip().lower()
+    if rec.get("kierunek") != "out" and "@" in nad and nad in NASZE_SKRZYNKI:
+        rec["kierunek"] = "out"  # mail z NASZEJ skrzynki = nasza strona (SENT przyjdzie jako IN)
     return {
         "kontrakt": KONTRAKT,
         "thread_id": thread_id(rec),

@@ -290,7 +290,24 @@ class FirestoreWaInboxStore:
         return rec
 
     def recent(self, limit: int = 50) -> List[dict]:
-        q = self.col.order_by("received_at", direction=firestore.Query.DESCENDING).limit(max(1, min(limit, 500)))
+        q = self.col.order_by("received_at", direction=firestore.Query.DESCENDING).limit(max(1, min(limit, 1000)))
+        return [d.to_dict() for d in q.stream()]
+
+    # --- Zapytania pod wolumen (archiwum v2). Celowo BEZ order_by przy where na innym polu
+    # (Firestore żądałby indeksu złożonego) — sortuje warstwa widoku (_osusz), wątek/zam
+    # to setki wiadomości maks., nie problem.
+    def zakres(self, od_ts: int, do_ts: int, limit: int = 300) -> List[dict]:
+        q = (self.col.where("received_at", ">=", od_ts).where("received_at", "<=", do_ts)
+             .order_by("received_at", direction=firestore.Query.DESCENDING)
+             .limit(max(1, min(limit, 1000))))
+        return [d.to_dict() for d in q.stream()]
+
+    def watek_wiadomosci(self, tid: str, limit: int = 1000) -> List[dict]:
+        q = self.col.where("thread_id", "==", tid).limit(limit)
+        return [d.to_dict() for d in q.stream()]
+
+    def po_zamie(self, zam: str, limit: int = 1000) -> List[dict]:
+        q = self.col.where("order_refs", "array_contains", zam).limit(limit)
         return [d.to_dict() for d in q.stream()]
 
     def count(self) -> int:

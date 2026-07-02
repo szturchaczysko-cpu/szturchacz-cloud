@@ -358,6 +358,18 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [ARTUR] **ARCHIWUM v2 — fundament pod WOLUMEN (etap 1/3 planu właściciela):**
+  panel Rozmów przestał mielić wszystko — pyta bazę o WYCINEK: domyślnie najnowsze 100
+  (przełącznik 100/300/1000), zakresy dat od–do, SZUKAJKA (nr zam / mail / telefon → wątki
+  z trafień; nazwisko będzie w karcie sprawy — dane osobowe w bazie franciszkańskiej, agent baz).
+  Oś czasu wątku/zamu = zapytanie po polu (bez okna) + doliczka starych rekordów sprzed archiwum.
+  Zapytania zweryfikowane na żywym Firestore (bez indeksów złożonych — sort w widoku).
+  Przy okazji DWIE CEGŁY WEM: (1) dedup po PRAWDZIWYM id (wamid/message-id gdy brama dołoży —
+  hash zostaje zastępnikiem; retransmisja po 2h = duplikat, test ✓), (2) mail Z NASZYCH skrzynek
+  (sav/magda/contact/biuro_info; env WEM_NASZE_SKRZYNKI) = kierunek OUT — gotowe pod monitoring
+  folderu WYSŁANE u Krzyśka (pełne dialogi mailowe od pierwszego dnia). NASTĘPNE: etap 2 =
+  pobieracz historii mail/eBay (pull /receive porcjami), etap 3 = KARTA SPRAWY (agregacja
+  po kliencie ze wszystkich źródeł + wyszukiwarka po nazwisku przez agenta baz).
 - 2026-07-03: [ARTUR] **JEDEN ADRES dla porównywarki (pomysł właściciela) — MOSTEK BILETOWY
   ZBUDOWANY.** Zamiast przerabiać domenę (mapowanie nie przenosi websocketów): porównywarka
   z ręką robota żyje pod adresem TECHNICZNYM usługi (websockety tam działają — zweryfikowane),

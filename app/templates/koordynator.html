@@ -64,6 +64,19 @@
         <button class="chip" data-kanal="ebay">eBay</button>
       </span>
     </div>
+    <div class="arch-filtry">
+      <label class="koord-row"><span>pokaż</span>
+        <select class="text-input" id="arch-limit">
+          <option value="100">najnowsze 100</option>
+          <option value="300">najnowsze 300</option>
+          <option value="1000">najnowsze 1000</option>
+        </select></label>
+      <label class="koord-row"><span>od</span><input class="text-input" id="arch-od" type="date"></label>
+      <label class="koord-row"><span>do</span><input class="text-input" id="arch-do" type="date"></label>
+      <input class="text-input" id="arch-szukaj" placeholder="szukaj: nr zam / mail / telefon" style="max-width:260px">
+      <button class="btn btn--small" id="btn-arch-szukaj">Szukaj</button>
+    </div>
+    <p class="message" id="arch-msg"></p>
     <div id="rozmowy"></div>
   </section>
 

@@ -180,10 +180,38 @@ function pozycjaArchiwum(naglowek, meta, urlOsi) {
   return d;
 }
 
+function archParams() {
+  const p = new URLSearchParams();
+  if (arch.kanal) p.set("channel", arch.kanal);
+  p.set("limit", $("arch-limit").value || "100");
+  if ($("arch-od").value) p.set("od", $("arch-od").value);
+  if ($("arch-do").value) p.set("do", $("arch-do").value);
+  return "?" + p.toString();
+}
+
+async function szukajArchiwum() {
+  const q = $("arch-szukaj").value.trim();
+  if (!q) return;
+  const box = $("rozmowy");
+  box.innerHTML = '<p class="empty">Szukam…</p>';
+  const r = await api("/api/koord/rozmowy/szukaj?q=" + encodeURIComponent(q));
+  box.innerHTML = "";
+  if (!r.ok) { $("arch-msg").textContent = r.message || "Błąd."; return; }
+  $("arch-msg").textContent = `Szukano (${r.typ}): ${r.q} — wątków: ${(r.watki || []).length}`;
+  (r.watki || []).forEach((w) => {
+    const zam = (w.order_refs || []).length ? " · zam " + w.order_refs.join(", ") : "";
+    const naglowek = `${w.channel} · ${w.klient} · ${w.liczba} wiad. (klient ${w.in} / my ${w.out})${zam}`;
+    const meta = "ostatnia: " + czasRozmowy(w.ostatnia_ts) + " · " + (w.ostatnia || "");
+    box.appendChild(pozycjaArchiwum(naglowek, meta, "/api/koord/rozmowy/watek?id=" + encodeURIComponent(w.thread_id)));
+  });
+  if (!box.children.length) box.innerHTML = '<p class="empty">Brak trafień.</p>';
+}
+
 async function loadRozmowy() {
   const box = $("rozmowy");
+  $("arch-msg").textContent = "";
   box.innerHTML = '<p class="empty">Ładuję…</p>';
-  const q = arch.kanal ? "?channel=" + encodeURIComponent(arch.kanal) : "";
+  const q = archParams();
   if (arch.tryb === "zam") {
     const r = await api("/api/koord/rozmowy/zamowienia" + q);
     box.innerHTML = "";
@@ -237,6 +265,9 @@ window.addEventListener("DOMContentLoaded", () => {
   $("btn-save-prompt").addEventListener("click", savePrompt);
   $("prompt-list").addEventListener("change", (e) => { if (e.target.value) $("prompt-url").value = e.target.value; });
   $("btn-reload-rozmowy").addEventListener("click", loadRozmowy);
+  $("btn-arch-szukaj").addEventListener("click", szukajArchiwum);
+  $("arch-szukaj").addEventListener("keydown", (e) => { if (e.key === "Enter") szukajArchiwum(); });
+  ["arch-limit", "arch-od", "arch-do"].forEach((i) => $(i).addEventListener("change", loadRozmowy));
   $("btn-wiezowczyk").addEventListener("click", loadWiezowczyk);
   $("wz-zam").addEventListener("keydown", (e) => { if (e.key === "Enter") loadWiezowczyk(); });
   wireChips("arch-tryb", "tryb", (v) => { arch.tryb = v || "zam"; loadRozmowy(); });

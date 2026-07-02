@@ -392,51 +392,125 @@ async def koord_wiezowczyk(request: Request):
     return await run_in_threadpool(podajnik.pobierz, q.get("od", ""), q.get("do", ""), q.get("zam", ""), limit)
 
 
+def _okno_archiwum(q) -> tuple:
+    """Parametry okna panelu: limit (domyślnie 100, max 1000) + opcjonalny zakres dat
+    (od/do, RRRR-MM-DD, po czasie odbioru). Zwraca (limit, od_ts|None, do_ts|None)."""
+    import time as _t
+    try:
+        limit = max(1, min(int(q.get("limit", "100")), 1000))
+    except ValueError:
+        limit = 100
+
+    def _ts(d, koniec=False):
+        try:
+            return int(_t.mktime(_t.strptime(d, "%Y-%m-%d"))) + (86399 if koniec else 0)
+        except (ValueError, OverflowError):
+            return None
+    od = _ts((q.get("od") or "").strip())
+    do = _ts((q.get("do") or "").strip(), koniec=True)
+    return limit, od, do
+
+
+async def _pobierz_okno(q) -> list:
+    limit, od, do = _okno_archiwum(q)
+    if od or do:
+        return await run_in_threadpool(deps.wa_inbox.zakres, od or 0, do or 2**33, limit)
+    return await run_in_threadpool(deps.wa_inbox.recent, limit)
+
+
+def _unikalne(*listy) -> list:
+    """Sklej wyniki zapytań bez powtórzeń (po id rekordu) — np. zapytanie po polu + okno
+    doliczające STARE rekordy sprzed archiwum (bez pól spinających w bazie)."""
+    widziane, out = set(), []
+    for lista in listy:
+        for m in lista:
+            i = m.get("id")
+            if i and i in widziane:
+                continue
+            widziane.add(i)
+            out.append(m)
+    return out
+
+
 @app.get("/api/koord/rozmowy")
 async def koord_rozmowy(request: Request):
-    """Archiwum, poziom 2: wątki po kliencie/nadawcy (opcjonalnie ?channel=whatsapp|email|ebay).
-    Stare rekordy bez pól spinających doliczane w locie z treści — zero migracji."""
+    """Archiwum, poziom 2: wątki po kliencie/nadawcy. Okno: ?limit= (domyślnie 100) albo
+    zakres ?od=&do= (RRRR-MM-DD); filtr ?channel=. Panel pyta o wycinek — skala-odporne."""
     if not koordynator_of(request):
         return JSONResponse({"ok": False}, status_code=403)
     from .wspolne import archiwum
-    msgs = await run_in_threadpool(deps.wa_inbox.recent, 500)
+    msgs = await _pobierz_okno(request.query_params)
     return {"ok": True, "watki": archiwum.zbuduj_watki(msgs, request.query_params.get("channel", ""))}
 
 
 @app.get("/api/koord/rozmowy/zamowienia")
 async def koord_rozmowy_zamowienia(request: Request):
-    """Archiwum, poziom 1 (klucz domeny): agregacja PO NUMERZE ZAMÓWIENIA (+ ?channel=)."""
+    """Archiwum, poziom 1 (klucz domeny): agregacja PO NUMERZE ZAMÓWIENIA. Okno jak wyżej."""
     if not koordynator_of(request):
         return JSONResponse({"ok": False}, status_code=403)
     from .wspolne import archiwum
-    msgs = await run_in_threadpool(deps.wa_inbox.recent, 500)
+    msgs = await _pobierz_okno(request.query_params)
     return {"ok": True, "zamowienia": archiwum.zbuduj_zamowienia(msgs, request.query_params.get("channel", ""))}
 
 
 @app.get("/api/koord/rozmowy/zamowienie")
 async def koord_rozmowa_zamowienia(request: Request):
-    """Archiwum: oś czasu jednego ZAMÓWIENIA (wszystkie kanały/klienci, chronologicznie)."""
+    """Oś czasu jednego ZAMÓWIENIA — zapytanie po polu (bez okna) + doliczka starych rekordów."""
     if not koordynator_of(request):
         return JSONResponse({"ok": False}, status_code=403)
     zam = (request.query_params.get("zam") or "").strip()
     if not zam:
         return JSONResponse({"ok": False, "message": "Brak numeru zamówienia."}, status_code=400)
     from .wspolne import archiwum
-    msgs = await run_in_threadpool(deps.wa_inbox.recent, 500)
-    return {"ok": True, "zam": zam, "wiadomosci": archiwum.zloz_zamowienie(msgs, zam)}
+    trafione = await run_in_threadpool(deps.wa_inbox.po_zamie, zam)
+    okno = await run_in_threadpool(deps.wa_inbox.recent, 300)  # stare rekordy sprzed archiwum
+    return {"ok": True, "zam": zam,
+            "wiadomosci": archiwum.zloz_zamowienie(_unikalne(trafione, okno), zam)}
 
 
 @app.get("/api/koord/rozmowy/watek")
 async def koord_rozmowa(request: Request):
-    """Archiwum: oś czasu jednego wątku klienta (in+out chronologicznie, duplikaty oflagowane)."""
+    """Oś czasu jednego wątku klienta — zapytanie po thread_id + doliczka starych rekordów."""
     if not koordynator_of(request):
         return JSONResponse({"ok": False}, status_code=403)
     tid = (request.query_params.get("id") or "").strip()
     if not tid:
         return JSONResponse({"ok": False, "message": "Brak id wątku."}, status_code=400)
     from .wspolne import archiwum
-    msgs = await run_in_threadpool(deps.wa_inbox.recent, 500)
-    return {"ok": True, "thread_id": tid, "wiadomosci": archiwum.zloz_rozmowe(msgs, tid)}
+    trafione = await run_in_threadpool(deps.wa_inbox.watek_wiadomosci, tid)
+    okno = await run_in_threadpool(deps.wa_inbox.recent, 300)
+    return {"ok": True, "thread_id": tid,
+            "wiadomosci": archiwum.zloz_rozmowe(_unikalne(trafione, okno), tid)}
+
+
+@app.get("/api/koord/rozmowy/szukaj")
+async def koord_rozmowy_szukaj(request: Request):
+    """Szukajka archiwum: numer zamówienia / adres mail / telefon → wątki z trafień.
+    (Nazwisko klienta = karta sprawy, etap 3 — dane osobowe siedzą w bazie franciszkańskiej.)"""
+    if not koordynator_of(request):
+        return JSONResponse({"ok": False}, status_code=403)
+    from .wspolne import archiwum
+    q = (request.query_params.get("q") or "").strip()
+    if not q:
+        return JSONResponse({"ok": False, "message": "Puste zapytanie."}, status_code=400)
+    listy = []
+    if "@" in q:  # adres mailowy → wątki mail/eBay tego nadawcy
+        for kanal in ("email", "ebay"):
+            listy.append(await run_in_threadpool(deps.wa_inbox.watek_wiadomosci, f"{kanal}:{q.lower()}"))
+        typ = "mail"
+    else:
+        cyfry = archiwum.normalizuj_telefon(q)
+        if 4 <= len(cyfry) <= 7:  # wygląda na numer zamówienia
+            listy.append(await run_in_threadpool(deps.wa_inbox.po_zamie, cyfry))
+            typ = "zam"
+        elif len(cyfry) >= 9:  # wygląda na telefon
+            listy.append(await run_in_threadpool(deps.wa_inbox.watek_wiadomosci, f"whatsapp:{cyfry}"))
+            typ = "telefon"
+        else:
+            return JSONResponse({"ok": False, "message": "Podaj nr zamówienia, mail albo telefon."},
+                                status_code=400)
+    trafione = _unikalne(*listy)
+    return {"ok": True, "typ": typ, "q": q, "watki": archiwum.zbuduj_watki(list(reversed(trafione)))}
 
 
 @app.get("/api/koord/gotowce")

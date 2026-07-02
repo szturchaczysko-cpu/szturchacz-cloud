@@ -382,7 +382,25 @@ class WaInboxStore(_JsonFile):
 
     def recent(self, limit: int = 50) -> List[dict]:
         with self._lock:
-            return list(reversed(self._data["items"]))[:max(1, min(limit, 500))]
+            return list(reversed(self._data["items"]))[:max(1, min(limit, 1000))]
+
+    # --- Zapytania pod wolumen (archiwum v2): panel pyta o WYCINEK, nie mieli wszystkiego ------
+    def zakres(self, od_ts: int, do_ts: int, limit: int = 300) -> List[dict]:
+        """Wiadomości z przedziału czasu odbioru (od najnowszych)."""
+        with self._lock:
+            trafione = [m for m in self._data["items"]
+                        if od_ts <= int(m.get("received_at") or 0) <= do_ts]
+        return list(reversed(trafione))[:max(1, min(limit, 1000))]
+
+    def watek_wiadomosci(self, tid: str, limit: int = 1000) -> List[dict]:
+        """Wszystkie wiadomości jednego wątku klienta (thread_id) — bez okna czasowego."""
+        with self._lock:
+            return [m for m in self._data["items"] if m.get("thread_id") == tid][-limit:]
+
+    def po_zamie(self, zam: str, limit: int = 1000) -> List[dict]:
+        """Wszystkie wiadomości wspominające numer zamówienia — bez okna czasowego."""
+        with self._lock:
+            return [m for m in self._data["items"] if zam in (m.get("order_refs") or [])][-limit:]
 
     def count(self) -> int:
         with self._lock:
