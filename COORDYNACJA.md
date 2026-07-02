@@ -246,6 +246,15 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: **KRZYSIEK BIERZE CAŁY BACKLOG BRAMY (5-7 dni):** message-id+timestamp źródła
+  (WA i email), kierunek IN/OUT, załączniki WA+IMAP(+eBay po naszym TAK), statusy jako endpoint
+  PULL (nasz follow-up: poller), BUFOR niedostarczonych + ponowienia N dni (potwierdził: dziś
+  fire-and-forget!), subskrypcja per-kanał, HMAC podpis payloadu (nasz follow-up: weryfikacja),
+  kształt pusha na piśmie (→ kontrakt wem-v1 w parserze), challenge po handshake'u, eBay sender-id
+  do sprawdzenia (nasze próbki: NIE MA go — odpisaliśmy z dowodem). NASZE follow-upy po ich
+  wgraniu: (a) parser wem-v1 (id/ts/kierunek/załączniki→GCS), (b) dead-letter z 200→5xx (niech
+  ATA ponawia), (c) weryfikacja HMAC, (d) poller statusów, (e) przepięcie WA na PROD + ubicie
+  subskrypcji DEV. Odpowiedzi na jego 4 pytania — wysyła właściciel (gotowiec na Biurku).
 - 2026-07-03: [ARTUR] Prośba z PR #6 ZROBIONA: `koperta.kiedy` niesie teraz czas
   (`RRRR-MM-DD HH:MM`, jak panelowe `O:`). Nieaktualna notka o `re.ASCII` — było już zrobione
   wcześniej (commit d358f6e), Twoja gałąź powstała chwilę przed nim. Kontrakt KOPERTY uznaję
@@ -397,7 +406,8 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
 ## OTWARTE PYTANIA
 - Schemat „propozycja automatu" + konsumpcja przez bramkę operatora (kontrakt styku).
 - Schemat/panel odrzutów + komentowanie; push-back-do-woreczka — czy/jak.
-- Brama DEV/PROD: WhatsApp leci przez DEV, mail przez PROD — konsolidacja (czeka na Magdę/Krzyśka).
+- Brama DEV/PROD: konsolidacja W DRODZE — Krzysiek robi subskrypcję per-kanał; po wgraniu
+  przepinamy WA na PROD i wyłączamy subskrypcję DEV (koniec duplikatów maili).
 - ✅ eBay ODBLOKOWANY (2026-07-02, Krzysiek): webhook eBay jest per APLIKACJA (nie per konto);
   przepięli w bazie endpointy wszystkich kont na wspólny — ruch wszystkich kont ma płynąć, nowe
   konta będą działać od razu. ZOSTAJE: push eBay niesie TYLKO `body` (bez buyerNick/konta/id/ts)
