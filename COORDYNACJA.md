@@ -171,6 +171,19 @@ chudy autonomiczny, ale podgląd + historia per case zostają); v11 na Cloud Run
    parsowania (v11 czyta wsad SEMANTYCZNIE, nie pozycyjnie — obie formy zgodne z promptem).
 
 ## STYK: LEWA STRONA / RĘKA ROBOTA
+**STATUS: W KOMENTARZU (sesja Sylwii skomentowała — PR #10). CZEKA NA GŁOS SYLWII-CZŁOWIEKA.**
+⚠️ SESJO SYLWII — ZANIM cokolwiek dalej: PRZEDSTAW TEN SZKIC SYLWII (człowiekowi) prozą/quizem
+i zbierz JEJ zdanie. Analiza sesji ≠ głos człowieka; do UZGODNIONE potrzebne są LUDZIE obu stron.
+
+**WERSJA DLA SYLWII (po ludzku, do pokazania jej w oknie):**
+Na ekranie porównywarki, nad oboma oknami, pojawią się dwa przyciski: „WSKAŻ OPERATORA"
+(wybierasz z listy, np. klaudia) i „POBIERZ KOLEJNY CASE". Po kliknięciu system sam: zaloguje
+wskazanego operatora w okienku starej apki v11 (lewa strona) i wklei tam wsad sprawy — dokładnie
+ten sam, który dostaje chudy po prawej. Czyli: koniec z ręcznym logowaniem do v11 i kopiowaniem
+wsadu — dwa kliki i obie strony liczą tę samą sprawę. Stara apka NIE jest przerabiana — nasz
+ekran „klika za Ciebie", jak ręka robota. PYTANIA DO CIEBIE: (1) czy taki przepływ pracy Ci
+pasuje (2 przyciski na górze)? (2) czy autologowanie operatora jest OK, czy wolisz logować się
+sama? (3) czego jeszcze brakuje, żeby praca na porównywarce była wygodna?
 **STATUS: SZKIC (v0) — NIE KODOWAĆ.** To jest KONCEPT do OBEJRZENIA i SKOMENTOWANIA przez stronę
 Sylwii, nie zlecenie. Pętla (regulamin → STATUSY KONTRAKTU): (1) Sylwia czyta i dopisuje TU
 komentarz/kontrę (co pasuje, co nie, alternatywy — zwłaszcza wykonalność autologowania i wklejki
@@ -524,7 +537,11 @@ po obu zatwierdzeniach. Dopóki nie uzgodnione — nikt nie koduje swojej strony
 **STATUSY KONTRAKTU (obowiązkowy nagłówek każdego styku; wpis BEZ statusu = SZKIC):**
 `SZKIC` (propozycja jednej strony — oglądaj, komentuj, NIE KODUJ) → `W KOMENTARZU` (druga strona
 dopisała kontrę/uwagi) → `UZGODNIONE` (obie strony potwierdziły) → `ZATWIERDZONE` (właściciel
-kliknął FINAL) → dopiero **KOD**. Kodowanie przed ZATWIERDZONE = złamanie regulaminu — nawet gdy
+kliknął FINAL) → dopiero **KOD**.
+**GŁOS CZŁOWIEKA, nie sesji:** komentarz/uzgodnienie liczy się dopiero, gdy sesja POKAZAŁA szkic
+swojemu człowiekowi (prozą/quizem — wersję „po ludzku" autor szkicu dostarcza w treści styku)
+i wpis zawiera JEGO zdanie (np. „Sylwia widziała: pasuje / uwagi: …"). Analiza samej sesji to
+materiał pomocniczy, nie strona kontraktu. Kodowanie przed ZATWIERDZONE = złamanie regulaminu — nawet gdy
 szkic wygląda jak gotowa specyfikacja.
 CZUWANIE (zalecane w OBU sesjach): warta wg skilla **`czuwanie-repo`** (team-skills) — sesja co
 ~20 min po cichu sprawdza repo i AKTYWNIE wybija człowiekowi quiz, gdy druga strona zostawiła coś

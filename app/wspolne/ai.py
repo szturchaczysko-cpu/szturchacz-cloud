@@ -56,7 +56,7 @@ def get_prompt(override: str = "") -> str:
         return load_bundled_prompt(o.lower())
     if o:
         return get_remote_prompt(o)  # traktuj jako URL
-    return load_bundled_prompt("v1_9")
+    return load_bundled_prompt("v1_11")
 
 # --- Pobieranie promptu (utwardzone) -------------------------------------------
 _PROMPT_TTL = 3600  # 1h
