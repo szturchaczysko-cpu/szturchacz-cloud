@@ -148,6 +148,52 @@ Reguły co do znaku (tak parsuje v11):
 
 Notka PII przyjęta przez Artura — do zapisania w kontrakcie (dane osobowe tylko za bramą).
 
+### 5.1. PRZYKŁADY Z PRODUKCJI (od Sylwii, 2026-07-02) — wzorce dla `wsad_panel`
+
+**Poprawna kolejność kolumn panelu** (obecnie pobierana kolejność jest NIEPRAWIDŁOWA — do poprawy
+w wieżowczyku; v11 jest przygotowany na dokładnie taki układ):
+
+```
+NrZam	Data Zama	User Tw	Nazwa Klienta	Mail	Tel	Kraj	Tagi	Bieżący etap	Data etapu	Kolejny etap	Data kolejnego etapu	Data zam kuriera	Reklamacja	Data dostarczenia paczki	lindexy	Zarządzaj	Szczegóły	Numery listu zwrotnego	Typ kuriera	Login Ebay	Nick Ebay
+```
+
+**Przykład 1 — zakup eBay, BEZ tagu** (numer 381879; UPS; jest Login/Nick eBay):
+
+```
+381879 	2026-06-22 	klaudia 	Lale SEVER 	sudharz19@hotmail.com 	16094985157 	Germany 	
+
+	Nie wysłano żadnego maila 		Etap 1 (Aktywny) 	2026-07-03 		brak 	2026-06-26
+DELIVERED
+	
+	146TSI6SSGRUP1,OLEJ_TITAN_75W_25 			
+
+	UPS
+1Z37418W6894449369 	pmg-topservice 	laspalmas67
+```
+
+**Przykład 2 — zakup poza eBay, Z tagiem** (numer 381865; FEDEX; kolumny eBay puste):
+
+```
+381865 	2026-06-22 	klaudia 	Cvm fussbodentechnik GmbH 	cvm-estriche@outlook.de 	015213565666 	Germany 	
+
+    c#:26.06;pz=pz3b;drabes=wa[1]/brak@26.06|tel[1]/odeb@26.06|mail[1]/wysl@26.06;ustalenia=pz3b.klient:potrzebuje 1-2 tyg.kotwica:10.07.aktywny_kanal=mail.towar_typ=skrzynia.wa_konto=podstawowe.brakuje:termin_odbioru_od_klienta;next=11.07
+
+	Nie wysłano żadnego maila 		Etap 2 (Aktywny) 	2026-07-06 		brak 	2026-06-24
+Delivered
+	
+	236222GRUP3,OLEJ_TITAN_75W_36 			
+
+	FEDEX
+1288801913330925841200873363060407
+```
+
+Co widać na przykładach (spójne z regułami §5): nagłówek `numer → data zama → nick (User Tw) →
+klient → mail → tel → kraj`; **Tagi** zaraz po nagłówku (pełny TAG-KOPERTA albo nic); data
+doręczenia bezpośrednio PRZED `Delivered`/`DELIVERED` (case-insensitive — obie formy występują);
+`lindexy` z przecinkiem (SYMBOL = do przecinka); typ kuriera osobno (`UPS`/`FEDEX`); ostatnia
+linia: list przewozowy + login eBay + nick eBay (przy zakupie poza eBay — sam list). `wsad_panel`
+z wieżowczyka ma odtwarzać DOKŁADNIE ten układ.
+
 ## 6. Pozostałe styki — PRZEGLĄD SYGNATUR WYKONANY (strona Sylwii)
 
 Przejrzałam `app/wspolne/styki.py` z `main` (commit `d2494f2`). Werdykt:

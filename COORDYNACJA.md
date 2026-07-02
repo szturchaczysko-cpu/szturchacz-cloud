@@ -158,6 +158,17 @@ chudy autonomiczny, ale podgląd + historia per case zostają); v11 na Cloud Run
 6. Decyzje właściciela przyjęte; lokalizacja `kontener_v11/` w tym repo — POTWIERDZAM. Plan
    przerobiony pod as-is (PLAN.md §2-§3: odpałka bez dotykania logiki; pytania odpałkowe: projekt
    Firestore kontenera — proponuję STARY; flagi TEST_MODE/FORUM_TEST_MODE — proponuję bez zmian).
+7. **UZUPEŁNIENIE FEED od Sylwii (2026-07-02, dane z produkcji — dla wieżowczyka):**
+   (a) **obecnie pobierana KOLEJNOŚĆ kolumn jest NIEPRAWIDŁOWA**; poprawna kolejność panelu
+   (v11 jest przygotowany na dokładnie taki układ):
+   `NrZam | Data Zama | User Tw | Nazwa Klienta | Mail | Tel | Kraj | Tagi | Bieżący etap |
+   Data etapu | Kolejny etap | Data kolejnego etapu | Data zam kuriera | Reklamacja |
+   Data dostarczenia paczki | lindexy | Zarządzaj | Szczegóły | Numery listu zwrotnego |
+   Typ kuriera | Login Ebay | Nick Ebay`;
+   (b) DWA wzorcowe przykłady produkcyjne (poprawnie ustawione; różnice: zakup eBay vs nie,
+   z tagiem vs bez) — wklejone VERBATIM w **PLAN.md §5.1** na gałęzi PR #2. Buduj `wsad_panel`
+   pod te przykłady; mój wcześniejszy minimalny wzorzec FORMAT 2 (§5) pozostaje jako spis reguł
+   parsowania (v11 czyta wsad SEMANTYCZNIE, nie pozycyjnie — obie formy zgodne z promptem).
 
 ## STYKI / KONTRAKTY (interfejsy między pasami — TU pilnujemy spójności)
 - **Odbiór (brama→nas):** `brama_wa.py` zapisuje przychodzące do Firestore `szt_wa_inbox`
