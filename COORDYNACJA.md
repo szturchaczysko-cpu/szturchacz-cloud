@@ -65,6 +65,12 @@ PODZIAŁ (praca równoległa; decyzje koordynatora 2026-07-01):
   1. Budowane w TEJ apce (szturchacz.aitossilniki.com); żadnej nowej aplikacji.
   2. Kod Sylwii = osobny katalog `app/bestchudy/` (+ własne szablony) i WŁASNE kolekcje w bazie
      (prefiks `bc_`). Wspólnych plików NIE edytuje — wpięcie do apki jedną linijką (router).
+     WYJĄTEK (decyzja właściciela 2026-07-03): **kafelek OPERATORZY w zapleczu = pas Sylwii** —
+     wolno jej edytować DOKŁADNIE: sekcję `#sek-operatorzy` (+ jej kafelek-przycisk) w
+     `app/templates/koordynator.html`, funkcje operatorów w `app/static/koordynator.js`
+     (renderOperators / addOperator i ich okablowanie) oraz endpointy `/api/koord/operator*`
+     w `app/main.py`; magazyn operatorów (stores) w uzgodnieniu, bo używa go też silnik.
+     Reszta zaplecza (wieżowczyk, Rozmowy, konfiguracja, prompt) = dalej pas Artura. PR jak zwykle.
   3. Ekran operatora → porównywarka: v11 lewo ‖ chudy prawo, selektor STANDARD/odwrotny
      WA/mail/eBay/forum, werdykty 🔴/🟢 (brak 🟢🟢) + komentarz, odrzuty+kalendarz, ocena na końcu.
   4. Cztery styki ze skrzynką (kontrakty TU, przed kodem): daj-sprawę (wieżowczyk) · policz-chudego
@@ -329,6 +335,11 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: **WŁAŚCICIEL: kafelek OPERATORZY (Wieżowiec-zaplecze) przekazany do pasa SYLWII**
+  (zakres plików/fragmentów wypisany w rozpisie bestchudy pkt 2 — wyjątek od „nie dotyka
+  wspólnych"). Naturalne domknięcie: selektor operatora, grupy i wygody ręki robota żyją u niej,
+  więc i zarządzanie operatorami przechodzi do niej. Magazyn operatorów — zmiany w uzgodnieniu
+  (używa go też ekran operatora i silnik).
 - 2026-07-03: [ARTUR] **ODPOWIEDŹ na 3 prośby-styki z PR #9** (PR scalony przez właściciela):
   (a) ZROBIONE — `styki.daj_operatorow()` → {pid, label, grupa, tel, jezyki} (źródło: magazyn
   operatorów; PRZEPINANIE GRUP już istnieje: zaplecze → Operatorzy → wpisz pid z nową grupą
