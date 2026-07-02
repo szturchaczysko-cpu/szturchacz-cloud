@@ -282,6 +282,10 @@ PĘTLA:
 5. **Deploy WYŁĄCZNIE z `main`, przez koordynatora.** Nigdy z rozjechanego lokalnego drzewa.
 KONTRAKTY: styk dwóch pasów → doc w repo, każdy wypełnia SWOJĄ stronę przez PR, „UZGODNIONE" dopiero
 po obu zatwierdzeniach. Dopóki nie uzgodnione — nikt nie koduje swojej strony.
+CZUWANIE (zalecane w OBU sesjach): warta wg skilla **`czuwanie-repo`** (team-skills) — sesja co
+~20 min po cichu sprawdza repo i AKTYWNIE wybija człowiekowi quiz, gdy druga strona zostawiła coś
+do decyzji (koordynator: PR-y/wpisy vibecoderów; vibecoder: odpowiedzi w koordynacji + ruch `main`
+→ przebazowanie). Człowiek uzbraja słowami „włącz czuwanie".
 
 ## WSKAŹNIKI
 - `CLAUDE.md` — stos, struktura, bezpieczniki + blok „START KAŻDEJ SESJI" (wczytuje się SAM
