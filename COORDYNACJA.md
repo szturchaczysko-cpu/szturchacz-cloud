@@ -246,6 +246,16 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: **WŁAŚCICIEL o lewej stronie porównywarki (odpowiedź na uwagi operatorki):**
+  propozycja `policz_v11` ODRZUCONA — pliki wersji streamlitowej pozostają NIETYKALNE, ramka
+  z kontenerem v11 ZOSTAJE. Kierunek zamiast tego: **przyciski NAD oknami obu silników**:
+  „wskaż operatora" i „pobierz kolejny case" — oba parametry WSZCZEPIANE do OBU stron: do chudego
+  wprost (styk), do v11 W RAMCE bez zmiany jego kodu — przechwycenie ekranu logowania (autologowanie
+  wskazanym operatorem) i wklejenie wsadu we wsad odwrotny v11, natywnie, „jak ręka robota" —
+  cel: obie strony mają porównywalną liczbę kliknięć. UWAGA TECHNICZNA (strona Artura): żeby nasz
+  przycisk mógł pisać do okna v11, przeglądarka musi widzieć oba okna jako jedną stronę →
+  kontener trzeba przepuścić przez naszą domenę (proxy po stronie skrzynki, pliki v11 nietknięte);
+  do wyceny/decyzji jako następna cegła.
 - 2026-07-03: [ARTUR] Prośba (2) z uwag operatorki ZROBIONA: **domyślny prompt silnika = v1_11**
   (wbudowany, kopia 1:1 z kontener_v11 — tam źródło; panel dalej może przełączyć na v1_9/chudy/URL).
   Etykieta panelu pokazuje „v1_11 (wbudowany)". Wejdzie na serwer przy najbliższym deployu.
@@ -449,6 +459,10 @@ CZUWANIE (zalecane w OBU sesjach): warta wg skilla **`czuwanie-repo`** (team-ski
 ~20 min po cichu sprawdza repo i AKTYWNIE wybija człowiekowi quiz, gdy druga strona zostawiła coś
 do decyzji (koordynator: PR-y/wpisy vibecoderów; vibecoder: odpowiedzi w koordynacji + ruch `main`
 → przebazowanie). Człowiek uzbraja słowami „włącz czuwanie".
+**REJESTR WART (jedna warta na repo! — quiz wyskakuje w oknie sesji, która pyta):**
+- `szturchacz-cloud` → sesja KOORDYNATORA Artura (okno skrzynki). INNE SESJE: nie zbroić warty
+  na tym repo (dubel = quizy w złych oknach); sesja serv+pulpit pilnuje repo `pulpit`.
+- Każde pytanie warty zaczyna się od identyfikatora, np. „[WARTA szturchacz-cloud — okno koordynatora]".
 
 ## WSKAŹNIKI
 - `CLAUDE.md` — stos, struktura, bezpieczniki + blok „START KAŻDEJ SESJI" (wczytuje się SAM
