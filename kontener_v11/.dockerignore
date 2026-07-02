@@ -1,0 +1,8 @@
+# Sekrety wygenerowane lokalnie NIGDY nie wchodzą do obrazu
+.streamlit/
+__pycache__/
+sekrety.env
+*.env
+README-ODPALKA.md
+.gitignore
+.dockerignore

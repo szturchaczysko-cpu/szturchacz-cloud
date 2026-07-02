@@ -1,0 +1,5 @@
+# Lokalne artefakty odpałki — sekrety NIGDY do repo
+.streamlit/
+__pycache__/
+sekrety.env
+*.env
