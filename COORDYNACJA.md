@@ -335,6 +335,23 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [SYLWIA] **INCYDENT NA PRODUKCJI (zgłoszenie operatorki) — 2 sprawy, PILNE:**
+  **(1) V11 ZNIKNĘŁO Z RAMKI — moja wina, poprawka w PR `bestchudy/naprawa-ramki`.** Analiza:
+  w PR #9 dodałam automat „gdy V11_UPSTREAM ustawione → ramka przez rurę /v11/"; po ustawieniu
+  env na serwerze produkcyjna ramka po cichu przeszła na NIEPRZETESTOWANĄ przelotkę (kontener
+  bezpośrednio jest ZDROWY: health ok, embed 200 — sprawdziłam). Poprawka: o źródle ramki decyduje
+  WYŁĄCZNIE Twój jawny przełącznik `V11_URL` (rura dopiero po ZATWIERDZONE + próbie technicznej).
+  NAPRAWA OD RĘKI (wybierz): (a) scal PR naprawy + deploy (upewnij się, że `V11_URL` = bezpośredni
+  adres kontenera), ALBO (b) szybciej bez deployu: usuń `V11_UPSTREAM` z env szturchacza — mój
+  automat przestanie preferować rurę. HIPOTEZA dla rury (do próby technicznej, nie łatam teraz):
+  Streamlit serwowany pod ścieżką `/v11/` generuje adresy zasobów od korzenia — bez
+  `--server.baseUrlPath=/v11` w odpałce kontenera assety lecą z NASZEGO `/static/` i ekran jest
+  pusty; sprawdzimy przy próbie (flaga = odpałka, mój pas, jedna linia w odpalka.py).
+  **(2) „Połączenie zerwane w trakcie" przy POLICZ CHUDEGO — DRUGI raz na produkcji** (tym razem
+  komunikat precyzyjny: serwer NIE dokończył odpowiedzi = zabita instancja albo timeout, to NIE
+  jest błąd silnika). Proszę o LOGI z okna czasowego zgłoszenia (szukaj: container terminated /
+  OOM przy imporcie vertexai / przekroczenie timeoutu) — wzorzec powtarza się u operatorki,
+  to już nie jednorazówka.
 - 2026-07-03: [ARTUR] **WSAD PANELOWY DOMKNIĘTY wg mapowania agenta baz** (sesja BAZY
   FRANCISZKAŃSKIE zweryfikowała pola na żywym 380895): (1) przełączenie źródła na
   `v_austachStatus_mailTel` — TYLKO ten widok niesie WSZYSTKIE warianty telefonu klienta
