@@ -246,6 +246,39 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [SYLWIA] **AWARIA NA PRODUKCJI: „Błąd sieci." przy POLICZ CHUDEGO (sprawa 381994)
+  — diagnoza + utwardzenie.** Sylwia dostała „Błąd sieci." po przeliczeniu chudego na żywo.
+  Z kodu wynika: to NIE był JSON z silnika (te zawsze przechodzą jako czytelne 502) — serwer
+  ZERWAŁ połączenie albo odpowiedział surowym 500 bez JSON-a, czyli awaria NA USŁUDZE. Najbardziej
+  prawdopodobne (do sprawdzenia w LOGACH — Twój pas): (a) pierwsza rozgrzewka Vertexa na tej
+  rewizji — leniwy import bibliotek + inicjalizacja przy małym RAM → zabity kontener (szukaj
+  „container terminated" / OOM); (b) łańcuch retry VertexProvider dłuższy niż timeout usługi;
+  (c) uprawnienia SA szturchacza do Vertex (aiplatform.user) — choć to powinno dać JSON 502.
+  MOJA STRONA (dołożone do PR `bestchudy/uwagi-operatorki`): komunikaty rozróżniają teraz
+  „połączenie zerwane (restart/timeout)" vs „HTTP <kod> bez JSON-a" (operator poda Ci konkret),
+  a wszystkie wywołania fasady mają pas bezpieczeństwa (żaden wyjątek nie wyjdzie jako surowy 500).
+  PROŚBA DODATKOWA: w `styki.policz_chudego` po `system = deps.active_prompt_text()` dołóż
+  `if not system.strip(): return {"ok": False, "message": "Aktywny prompt niedostępny…"}` —
+  gdy prompt_url z panelu padnie bez cache, chudy policzyłby dziś BEZ promptu (cichy śmieć).
+- 2026-07-03: [SYLWIA] **UWAGI OPERATORKI z pracy na żywym ekranie** (PR `bestchudy/uwagi-operatorki`):
+  (1) OD RĘKI (mój pas): podgląd sklejki OTWARTY domyślnie („najlepszy obraz sprawy" — Sylwia),
+  pole rolki schowane za rozwijką (rzadko potrzebne). Werdykty i „Wyślij do silnika" — ocenione OK.
+  (2) **PROŚBA DO ARTURA — PROMPT CHUDEGO NA v1_11:** Sylwia zgłasza jako błąd, że chudy liczy na
+  „v1_9 (wbudowany)" (fallback `deps.active_prompt_text`). Decyzja zespołu 2026-06-30 = v1_11.
+  Panel przyjmuje `prompt_url` — wskaż plik v1_11 (jest w repo: `kontener_v11/szturchacz_vnext_v1_11.txt`)
+  albo dołóż go jako wbudowany (Twoje pliki: app/prompts + panel).
+  (3) **DO DECYZJI WŁAŚCICIELA — LEWA STRONA PORÓWNYWARKI:** Sylwia po pracy na żywo: miniatura
+  streamlita w ramce się NIE nadaje (to stary ekran, z którego rezygnujemy) — lewa strona ma być
+  pusta jak prawa, wsad ZAŁĄCZANY dla v11 tak samo jak dla chudego, a w panelu ma się pojawiać
+  ROZWIĄZANIE sprawy od v11. To odwraca doprecyzowanie właściciela (iframe + KOPIUJ WSAD), więc
+  NIE koduję bez zgody (bramka 4). PROPOZYCJA WIERNA DUCHOWI as-is: wywołać prompt v1_11 DOKŁADNIE
+  tak, jak robił to STARY AUTOPILOT w starym Wieżowcu (system = prompt v1_11 + PARAMETRY STARTOWE,
+  wsad jako wiadomość user, temperatura 0.0) — to ścieżka ISTNIEJĄCA w starym świecie (autopilot
+  liczył v11 bez ekranu od zawsze), nie przepisywanie silnika. Kontener v11 ZOSTAJE (produkcyjna
+  praca + wzorzec); ramka w porównywarce znika albo zostaje jako opcja. WYMAGA STYKU po stronie
+  Artura: `policz_v11(wsad, historia)` w fasadzie (jak `policz_chudego`, ale system = v1_11 z pliku
+  w repo zamiast aktywnego promptu panelu). Wyjścia obu stron bez zmian za zaworem/klikiem.
+  Właściciel klika; po zgodzie spinam lewą stronę w jeden wieczór.
 - 2026-07-03: **WŁAŚCICIEL o lewej stronie porównywarki (odpowiedź na uwagi operatorki):**
   propozycja `policz_v11` ODRZUCONA — pliki wersji streamlitowej pozostają NIETYKALNE, ramka
   z kontenerem v11 ZOSTAJE. Kierunek zamiast tego: **przyciski NAD oknami obu silników**:

@@ -106,7 +106,12 @@ async def sprawy(request: Request):
     limit = max(1, min(limit, 50))
 
     from ..wspolne import styki  # fasada
-    wynik = styki.daj_sprawe(zam=zam, limit=limit)
+    try:
+        wynik = styki.daj_sprawe(zam=zam, limit=limit)
+    except Exception as e:  # noqa: BLE001 — pas bezpieczeństwa: nigdy surowy 500 bez JSON-a
+        return JSONResponse({"ok": False, "message": "Awaria podajnika po stronie serwera "
+                            f"({type(e).__name__}) — szczegóły w logach usługi (koordynator)."},
+                            status_code=502)
     if not wynik.get("ok"):
         # wejścia zwalidowane wyżej → ok:False = źródło niedostępne (upstream)
         return JSONResponse(wynik, status_code=502)
@@ -158,7 +163,12 @@ async def policz(request: Request):
         return JSONResponse({"ok": False, "message": "Pusty wsad."}, status_code=400)
 
     from ..wspolne import styki  # fasada — leniwie, żeby import routera nie budował magazynów
-    wynik = styki.policz_chudego(wejscie_bazowe, rolka, historia)
+    try:
+        wynik = styki.policz_chudego(wejscie_bazowe, rolka, historia)
+    except Exception as e:  # noqa: BLE001 — pas bezpieczeństwa: nigdy surowy 500 bez JSON-a
+        return JSONResponse({"ok": False, "message": "Awaria silnika po stronie serwera "
+                            f"({type(e).__name__}) — szczegóły w logach usługi (koordynator)."},
+                            status_code=502)
     if not wynik.get("ok"):
         return JSONResponse(wynik, status_code=502)
     # Lustro budowy wejścia w styki.policz_chudego — klient trzyma wierną historię rozmowy.
@@ -250,11 +260,16 @@ async def wyslij(request: Request):
         return JSONResponse({"ok": False, "message": "Bezpiecznik: brak zgody operatora (klik)."},
                             status_code=400)
     from ..wspolne import styki
-    wynik = styki.wyslij(
-        str(d.get("kanal") or ""), logika.przytnij(d.get("adresat"), 300),
-        logika.przytnij(d.get("tresc"), 8000), operator_pid=op.get("pid", ""),
-        zgoda=True, subject=logika.przytnij(d.get("subject"), 300),
-    )
+    try:
+        wynik = styki.wyslij(
+            str(d.get("kanal") or ""), logika.przytnij(d.get("adresat"), 300),
+            logika.przytnij(d.get("tresc"), 8000), operator_pid=op.get("pid", ""),
+            zgoda=True, subject=logika.przytnij(d.get("subject"), 300),
+        )
+    except Exception as e:  # noqa: BLE001 — pas bezpieczeństwa: nigdy surowy 500 bez JSON-a
+        return JSONResponse({"ok": False, "message": "Awaria zaworu po stronie serwera "
+                            f"({type(e).__name__}) — szczegóły w logach usługi (koordynator)."},
+                            status_code=502)
     # ok:false z kluczem tryb=live występuje wyłącznie przy awarii bramy WEM (upstream) → 502.
     kod = 200 if wynik.get("ok") else (502 if wynik.get("tryb") == "live" else 400)
     return JSONResponse(wynik, status_code=kod)
