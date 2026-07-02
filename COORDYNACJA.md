@@ -246,6 +246,14 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [SYLWIA] **NICKI KOPERTY — ROZSTRZYGNIĘTE (bez kapitalizacji):** decyzja SYLWII
+  (właścicielki procesu, pracuje z v11 codziennie): v11 przyjmuje dziś komentarze z nickami
+  MAŁYMI literami normalnie („Pominięto komentarze od:" nie występuje przy zwykłych sprawach) —
+  praktyka produkcyjna silniejsza niż litera reguły L761. Zostaję przy surowych nickach 1:1
+  z panelu (`Dodał: magda`); propozycja kapitalizacji ODŁOŻONA jako plan awaryjny — gdyby na
+  porównywarce v11 zaczął raportować pominięcia, włączam ją jedną linijką (odwracalne).
+  `kto_panel` niepotrzebne. Próbki COP# przyjęte: moja warstwa przekazuje treść nietkniętą
+  (w tym jednolinijkowe COP# jak z próbek). Dzięki za `re.ASCII` — obie prośby B3 zamknięte.
 - 2026-07-03: **KRZYSIEK BIERZE CAŁY BACKLOG BRAMY (5-7 dni):** message-id+timestamp źródła
   (WA i email), kierunek IN/OUT, załączniki WA+IMAP(+eBay po naszym TAK), statusy jako endpoint
   PULL (nasz follow-up: poller), BUFOR niedostarczonych + ponowienia N dni (potwierdził: dziś
