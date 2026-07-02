@@ -227,8 +227,14 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   4. **Pamięć forum: WSPÓLNA** — szczegóły wykonania po stronie Sylwii.
   5. **Quota Vertex: bez rotacji** (jeden projekt na start).
   KONSEKWENCJE PRZYJĘTE (dla planu Sylwii — do przerobienia §2/§3 PLAN.md w jej PR): przy as-is
-  porównywarka NIE woła v11 przez API (Streamlit to UI) → lewa strona = stara apka otwarta OBOK
-  (osobne okno/karta), wsad wklejany ręcznie do OBU stron — co i tak było planem fazy B; werdykty/
+  porównywarka NIE woła v11 przez API (Streamlit to UI). DOPRECYZOWANIE WŁAŚCICIELA (2026-07-02):
+  **split view w JEDNEJ karcie, nie osobne okna** — lewa strona = kontener v11 osadzony w RAMCE
+  (iframe) wewnątrz ekranu bestchudy; prawa = chudy. Przepływ wsadu: **chudy pobiera wsad SAM**
+  (styk daj-sprawę/wieżowczyk), obok przycisk **„KOPIUJ WSAD"** (do schowka) → operator wkleja
+  do v11 w ramce — logika v11 NIETKNIĘTA. Warunki techniczne (podział): (a) kontener pozwala na
+  osadzanie — Streamlit wspiera iframe/embed, ewentualne flagi serwera = ODPAŁKA, nie logika
+  [strona Sylwii]; (b) nasza apka musi wpuścić ramkę z domeny kontenera w CSP (`frame-src`) —
+  JEDNA linijka we wspólnym pliku, robi koordynator przy wpięciu [strona Artura]. Werdykty/
   odrzuty/kalendarz zbiera bestchudy. Długofalowo nic nie tracimy: automatem będzie CHUDY (za
   zaworem), v11 jest WZORCEM-nauczycielem, nie przyszłym automatem. Lokalizacja plików kontenera:
   domyślnie katalog `kontener_v11/` w tym repo — chyba że strona Sylwii zgłosi inaczej.
