@@ -19,6 +19,7 @@ from itsdangerous import BadSignature, URLSafeTimedSerializer
 from starlette.concurrency import run_in_threadpool
 
 from . import config, deps, security_panel, sso
+from .bestchudy.router import router as bestchudy_router  # gniazdo modułu Sylwii (pas: bestchudy)
 from .cases_loader import autopilot as autopilot_mod
 from .koordynator import panel
 from .operator import flow
@@ -41,6 +42,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Szturchacz", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
+app.include_router(bestchudy_router)  # JEDYNE wpięcie pasa bestchudy we wspólny kod
 
 
 @app.middleware("http")

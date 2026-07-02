@@ -123,6 +123,49 @@ async function loadGotowce() {
   });
 }
 
+function czasRozmowy(ts) {
+  return ts ? new Date(ts * 1000).toLocaleString("pl-PL") : "—";
+}
+
+async function loadRozmowy() {
+  const r = await api("/api/koord/rozmowy");
+  const box = $("rozmowy");
+  box.innerHTML = "";
+  if (!r.ok || !(r.watki || []).length) {
+    box.innerHTML = '<p class="empty">Brak rozmów — nic jeszcze nie wpadło z bramy WEM.</p>';
+    return;
+  }
+  r.watki.forEach((w) => {
+    const d = document.createElement("details");
+    d.className = "gotowiec";
+    const s = document.createElement("summary");
+    const zam = (w.order_refs || []).length ? " · zam " + w.order_refs.join(", ") : "";
+    s.textContent = `${w.channel} · ${w.klient} · ${w.liczba} wiad. (klient ${w.in} / my ${w.out})${zam}`;
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = "ostatnia: " + czasRozmowy(w.ostatnia_ts) + " · " + (w.ostatnia || "");
+    const body = document.createElement("div");
+    d.appendChild(s); d.appendChild(meta); d.appendChild(body);
+    d.addEventListener("toggle", async () => {
+      if (!d.open || body.dataset.loaded) return;
+      body.dataset.loaded = "1";
+      const t = await api("/api/koord/rozmowy/watek?id=" + encodeURIComponent(w.thread_id));
+      body.innerHTML = "";
+      (t.wiadomosci || []).forEach((m) => {
+        const p = document.createElement("p");
+        p.className = "rozmowa-linia"
+          + (m.kierunek === "out" ? " rozmowa-linia--out" : "")
+          + (m.duplikat ? " rozmowa-linia--dup" : "");
+        const kto = m.kierunek === "out" ? "MY" : "KLIENT";
+        p.textContent = `[${czasRozmowy(m.ts)}] ${kto}${m.duplikat ? " (duplikat)" : ""}: ${m.text || "(pusta treść)"}`;
+        body.appendChild(p);
+      });
+      if (!body.children.length) body.innerHTML = '<p class="empty">Pusty wątek.</p>';
+    });
+    box.appendChild(d);
+  });
+}
+
 async function runAutopilot() {
   $("btn-run-autopilot").disabled = true;
   const r = await api("/api/koord/autopilot/run", {});
@@ -142,7 +185,9 @@ window.addEventListener("DOMContentLoaded", () => {
   $("btn-save-prompt").addEventListener("click", savePrompt);
   $("prompt-list").addEventListener("change", (e) => { if (e.target.value) $("prompt-url").value = e.target.value; });
   $("btn-reload-gotowce").addEventListener("click", loadGotowce);
+  $("btn-reload-rozmowy").addEventListener("click", loadRozmowy);
   load();
   loadPrompts();
   loadGotowce();
+  loadRozmowy();
 });

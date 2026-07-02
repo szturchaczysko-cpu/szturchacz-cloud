@@ -58,3 +58,8 @@
 .gotowiec summary { cursor: pointer; font-weight: 600; }
 .gotowiec .codeblock { margin-top: var(--space-2); }
 .gotowiec .meta { color: var(--muted); font-size: 12px; }
+
+/* Rozmowy (archiwum WEM) — oś czasu wątku: monochrom, nasze linie z akcentową krawędzią */
+.rozmowa-linia { margin: var(--space-1) 0; white-space: pre-wrap; font-size: var(--fs-base); line-height: 1.5; }
+.rozmowa-linia--out { border-left: 3px solid var(--accent-dim); padding-left: var(--space-2); }
+.rozmowa-linia--dup { opacity: .45; }
