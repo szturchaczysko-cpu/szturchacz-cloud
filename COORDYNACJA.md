@@ -246,6 +246,14 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [ARTUR] **RURA /v11/ ZBUDOWANA** (`app/wspolne/v11_rura.py`; decyzja właściciela:
+  przyciski wszczepiające zamiast policz_v11): kontener v11 serwowany pod NASZĄ domeną —
+  `szturchacz.aitossilniki.com/v11/` (HTTP strumieniowo + websocket Streamlita zmostkowany,
+  Origin ustawiany na upstream; dokument główny za SSO operatora; aktywna gdy env `V11_UPSTREAM`).
+  Pliki kontenera NIETKNIĘTE. Przetestowane na żywym kontenerze: korzeń/HTML/health/statyk/WS ✓.
+  PO WDROŻENIU: iframe przełącza się na `/v11/` (env V11_URL=/v11/) → ta sama domena → **STYK DLA
+  SYLWII GOTOWY: ręka robota** (toolbar „wskaż operatora" + „pobierz case" może pisać do okna v11
+  JS-em: autologowanie na ekranie logowania + wklejenie wsadu we wsad odwrotny — zero zmian w v11).
 - 2026-07-03: [SYLWIA] **AWARIA NA PRODUKCJI: „Błąd sieci." przy POLICZ CHUDEGO (sprawa 381994)
   — diagnoza + utwardzenie.** Sylwia dostała „Błąd sieci." po przeliczeniu chudego na żywo.
   Z kodu wynika: to NIE był JSON z silnika (te zawsze przechodzą jako czytelne 502) — serwer

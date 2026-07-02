@@ -78,9 +78,11 @@ WEM_JWT_LOGIN = os.environ.get("WEM_JWT_LOGIN", "")
 WEM_JWT_PASSWORD = os.environ.get("WEM_JWT_PASSWORD", "")
 
 # --- Kontener v11 (bestchudy: lewa strona porównywarki w ramce) -----------------
-# Adres serwisu kontener-v11 na Cloud Run. Ustawiony → nasza CSP wpuszcza ramkę z tej
-# domeny (frame-src), a ekran porównywarki osadza v11 w split view. Pusty = ramka wyłączona.
+# V11_URL = co wstawiamy w src ramki. Etap 1: pełny adres kontenera (CSP dostaje frame-src).
+# Etap 2 (RURA, decyzja właściciela 2026-07-03): V11_URL="/v11/" (ta sama domena → ręka robota
+# może sięgać do okna v11), a adres kontenera przenosi się do V11_UPSTREAM (cel przelotki).
 V11_URL = os.environ.get("V11_URL", "").strip()
+V11_UPSTREAM = os.environ.get("V11_UPSTREAM", "").strip().rstrip("/")
 
 # --- AI ------------------------------------------------------------------------
 GCP_PROJECT_IDS = [p.strip() for p in os.environ.get("GCP_PROJECT_IDS", "").split(",") if p.strip()]

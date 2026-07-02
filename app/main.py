@@ -44,6 +44,9 @@ app = FastAPI(title="Szturchacz", docs_url=None, redoc_url=None, openapi_url=Non
 app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
 app.include_router(bestchudy_router)  # JEDYNE wpięcie pasa bestchudy we wspólny kod
 
+from .wspolne.v11_rura import router as v11_rura_router  # noqa: E402 — rura /v11/ (ręka robota)
+app.include_router(v11_rura_router)
+
 
 # CSP liczona raz: bazowo ramki zablokowane (default-src); gdy ustawiono V11_URL, wpuszczamy
 # ramkę WYŁĄCZNIE z domeny kontenera v11 (split view porównywarki — decyzja właściciela 2026-07-02).

@@ -9,3 +9,6 @@ PyJWT[crypto]==2.10.1
 # AI (Vertex/Gemini) — ładowany leniwie w app/wspolne/ai.py.
 # W prod realny dostawca; lokalnie bez creds apka i tak schodzi na zaślepkę AI.
 google-cloud-aiplatform>=1.71,<2
+# Rura /v11/ (przelotka do kontenera v11 — HTTP + websocket Streamlita)
+httpx>=0.27,<1
+websockets>=12,<16
