@@ -246,6 +246,14 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [SYLWIA] **NICKI KOPERTY — ROZSTRZYGNIĘTE (bez kapitalizacji):** decyzja SYLWII
+  (właścicielki procesu, pracuje z v11 codziennie): v11 przyjmuje dziś komentarze z nickami
+  MAŁYMI literami normalnie („Pominięto komentarze od:" nie występuje przy zwykłych sprawach) —
+  praktyka produkcyjna silniejsza niż litera reguły L761. Zostaję przy surowych nickach 1:1
+  z panelu (`Dodał: magda`); propozycja kapitalizacji ODŁOŻONA jako plan awaryjny — gdyby na
+  porównywarce v11 zaczął raportować pominięcia, włączam ją jedną linijką (odwracalne).
+  `kto_panel` niepotrzebne. Próbki COP# przyjęte: moja warstwa przekazuje treść nietkniętą
+  (w tym jednolinijkowe COP# jak z próbek). Dzięki za `re.ASCII` — obie prośby B3 zamknięte.
 - 2026-07-03: [ARTUR] **ODPOWIEDŹ na 2 prośby weryfikacyjne Sylwii (B3):**
   (1) **WIELKOŚĆ LITER — obawa POTWIERDZONA, z dowodem:** `Comment.userName` jest w bazie
   KONSEKWENTNIE lowercase (top: marlena_b, marta_p, emilia, iwona, …, oliwia, klaudia, magda —
@@ -264,6 +272,16 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   b) austaush=464737, userName='oliwia', 2026-06-03: `COP# PZ: PZ9 COP# DRABES: mail[6]/wysl@27.05 | tel[1]/odeb@07.05 COP# USTALENIA: PZ9 | NIE KONTAKTOWAĆ KLIENTA - PROBLEM WEWNĘTRZNY. (…) | forum_sped=zablokowana | szturze_wsparcie=TAK | (…)`
   (2) **`re.ASCII` DOŁOŻONE** w `_DATA_RE` i `_ZAM_RE` podajnika + test (cyfry arabskie odpadają
   na walidacji, nie w SQL). Dzięki za wyłapanie.
+- 2026-07-03: [SYLWIA] **KOPERTA ZWERYFIKOWANA na próbce produkcyjnej** (dostarczyła Sylwia —
+  właścicielka procesu; PR `bestchudy/koperta-format`). Prośba (1) z wpisu B3 ZAMKNIĘTA:
+  składanie koperty poprawione na odbicie panelu 1:1 — nagłówek `Komentarze`, blok =
+  `Dodał: <nick>` / treść surowa / `O: <data>`, bloki bez pustych linii. Pytanie o wielkość
+  liter ROZSTRZYGNIĘTE: realne nicki paneli są lowercase (`marlena_b`, `emilia`, `magda`) i tak
+  pracują dziś z v11 — zero mapowania. SEMANTYKA od Sylwii do kontraktu: komentarze dają KONTEKST
+  i obraz sprawy, WYZNACZNIKIEM stanu jest TAG w karcie (spójne z hierarchią v11). Drobna prośba
+  do Artura (opcjonalna, wierność 1:1): `koperta.kiedy` z czasem (`RRRR-MM-DD HH:MM` — panel
+  pokazuje `O: 2026-06-10 11:12`, feed tnie do samej daty). Prośba (2) — `re.ASCII` w podajniku —
+  nadal otwarta.
 - 2026-07-03: [SYLWIA] **B3 SPIĘTE** (PR `bestchudy/feed-b3`): porównywarka pobiera sprawy przez
   `styki.daj_sprawe` — przycisk „Z wieżowczyka (najnowsze)" + „Po numerze"; `wsad_panel` wchodzi
   1:1 (tag w środku — pole TAG czyszczone, bez dubla), `koperta` składana blokami wg filtra

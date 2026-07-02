@@ -136,29 +136,32 @@ def waliduj_historie(historia) -> str:
 
 
 def zloz_koperte(wpisy) -> str:
-    """Koperta z FEED (lista {kto, kiedy, tresc}) → tekst blokowy zgodny z filtrem autorów v11
-    (prompt §0.7.2): „Blok autora" zaczyna się od `dodał: <nick>`, a nick jest porównywany
-    z [OPERATORS] CASE-SENSITIVE i BEZ ozdobników — dlatego nick stoi SAM w swojej linii,
-    a data idzie do linii treści."""
+    """Koperta z FEED (lista {kto, kiedy, tresc}) → tekst 1:1 jak sekcja „Komentarze" w panelu.
+    Wzorzec = PRÓBKA PRODUKCYJNA od Sylwii (2026-07-03): nagłówek `Komentarze`, blok =
+    `Dodał: <nick>` / treść surowa / `O: <data>`; bloki bez pustych linii między sobą.
+    Nick BEZ transformacji (filtr autorów v11 jest case-sensitive; realne nicki paneli są
+    lowercase — `marlena_b`, `emilia` — i w tej formie zna je [OPERATORS], skoro operatorki
+    tak dziś pracują). Treść nietknięta co do znaku (linie C#/COP# muszą zostać rozpoznawalne).
+    Semantyka (wskazówka właścicielki procesu): komentarze dają KONTEKST I OBRAZ sprawy,
+    wyznacznikiem stanu jest TAG w karcie (hierarchia v11: TAG-KOPERTA > COP# > bootstrap)."""
     if not isinstance(wpisy, list):
         return ""
     bloki = []
     for w in wpisy:
         if not isinstance(w, dict):
             continue
-        kto = oczysc(w.get("kto"))
         tresc = oczysc(w.get("tresc"))
         if not tresc:
             continue
-        if not kto:
-            # Pusty autor: „?" nie jest w [OPERATORS], więc v11 JAWNIE zaraportuje pominięcie
-            # („Pominięto komentarze od: ?") zamiast cichej utraty treści.
-            kto = "?"
+        # Pusty autor: „?" nie jest w [OPERATORS], więc v11 JAWNIE zaraportuje pominięcie
+        # („Pominięto komentarze od: ?") zamiast cichej utraty treści.
+        kto = oczysc(w.get("kto")) or "?"
         kiedy = oczysc(w.get("kiedy"))
-        # Data w OSOBNEJ linii — treść zostaje surowa 1:1 (doklejka do pierwszej linii psułaby
-        # „poprawny BLOK COP#": linia musi zaczynać się od `COP# PZ:` co do znaku).
-        bloki.append("dodał: " + kto + "\n" + ((kiedy + "\n") if kiedy else "") + tresc)
-    return "\n\n".join(bloki)
+        blok = "Dodał: " + kto + "\n" + tresc
+        if kiedy:
+            blok += "\nO: " + kiedy
+        bloki.append(blok)
+    return ("Komentarze\n" + "\n".join(bloki)) if bloki else ""
 
 
 # Lustro walidacji podajnika; re.ASCII — bez niego \d łapie cyfry Unicode (np. arabskie),
