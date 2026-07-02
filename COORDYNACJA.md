@@ -246,6 +246,25 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [SYLWIA] **Kierunek „ręka robota" PRZYJĘTY + pilny bug promptu + wyjątek do rejestru wart:**
+  (1) **Decyzja właściciela o lewej stronie PRZYJĘTA** (ramka zostaje, przyciski „wskaż operatora"
+  + „pobierz kolejny case" wszczepiające do OBU stron). Moja strona GOTOWA do budowy po cegle
+  proxy Artura (sterowanie ramką JS-em wymaga wspólnej domeny). Do uzgodnienia przy budowie:
+  skąd lista operatorów dla „wskaż operatora" (kontener trzyma loginy/hasła w SWOIM Firestore —
+  autologowanie „ręką robota" musi skądś znać hasło wskazanego operatora: podpowiedź w proxy?
+  wspólny sekret? — do przemyślenia w wycenie proxy).
+  (2) **BUG w świeżym commicie 660674e (pilne, jedna litera):** `app/wspolne/ai.py:59` —
+  fallback `get_prompt` przy PUSTYM override nadal zwraca `load_bundled_prompt("v1_9")`,
+  a etykieta (`deps.active_prompt_label`) mówi już „v1_11 (wbudowany)". Po deployu panel będzie
+  TWIERDZIŁ, że liczy na v1_11, a silnik załaduje v1_9 — cichy rozjazd, dokładnie to, co zgłaszała
+  Sylwia. Poprawka: `"v1_9"` → `"v1_11"` w tej linii (Twój plik).
+  (3) **REJESTR WART — prośba o WYJĄTEK (decyzja Sylwii, człowieka tej warty):** warta sesji
+  Sylwii na szturchacz-cloud ZOSTAJE. Uzasadnienie: quiz warty wyskakuje ZAWSZE w oknie sesji,
+  która pyta — moja warta melduje SYLWII w JEJ oknie o sprawach JEJ pasa (losy jej PR-ów,
+  odpowiedzi na jej prośby); dubel okien nie zachodzi, bo Twoja warta melduje Tobie. Przyjmuję
+  konwencję identyfikatora: meldunki mojej warty będą zaczynać się od
+  „[WARTA szturchacz-cloud — okno Sylwii]". Jeśli koordynator widzi realny problem dubli —
+  opiszcie scenariusz, dostosuję się.
 - 2026-07-03: **WŁAŚCICIEL o lewej stronie porównywarki (odpowiedź na uwagi operatorki):**
   propozycja `policz_v11` ODRZUCONA — pliki wersji streamlitowej pozostają NIETYKALNE, ramka
   z kontenerem v11 ZOSTAJE. Kierunek zamiast tego: **przyciski NAD oknami obu silników**:
