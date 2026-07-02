@@ -307,6 +307,34 @@ async def koord_diamenty(request: Request):
     return {"ok": True, **await run_in_threadpool(panel.raport_diamenty, request.query_params.get("data", ""))}
 
 
+# --- Mostek biletowy: ładna domena → adres techniczny (websockety) ---------------
+@app.get("/przeskok-bestchudy")
+async def przeskok_bestchudy(request: Request):
+    """Przeskok do porównywarki pod adresem TECHNICZNYM (tam działa ręka robota i telefon
+    Streamlita). Wymaga sesji Pulpitu na ładnej domenie; przenosi tożsamość 60-sek. biletem."""
+    operator = operator_of(request)
+    if not operator:
+        return RedirectResponse(config.PULPIT_URL, status_code=303)
+    if not config.TECH_URL:
+        return JSONResponse({"ok": False, "message": "Mostek wyłączony (brak TECH_URL)."}, status_code=503)
+    bilet = sso.wystaw_bilet(operator)
+    return RedirectResponse(f"{config.TECH_URL}/api/sso/bilet?b={bilet}", status_code=303)
+
+
+@app.get("/api/sso/bilet")
+async def sso_bilet(request: Request):
+    """Ląduje na adresie technicznym: wymienia bilet na lokalną sesję (`tsession`, 8 h)
+    i wpuszcza do porównywarki. Bilet po 60 s martwy; podpis = nasz SECRET_KEY."""
+    claims = sso.przyjmij_bilet(request.query_params.get("b", ""))
+    if not claims:
+        return JSONResponse({"ok": False, "message": "Bilet nieważny albo wygasł — wróć przez kafelek."},
+                            status_code=403)
+    odp = RedirectResponse("/bestchudy", status_code=303)
+    odp.set_cookie("tsession", sso.wystaw_tsession(claims), max_age=8 * 60 * 60,
+                   httponly=True, secure=config.COOKIE_SECURE, samesite="lax")
+    return odp
+
+
 # --- Brama ATA: odbiór WhatsApp ------------------------------------------------
 @app.api_route("/api/brama/wa/{token}", methods=["GET", "POST"])
 async def brama_wa_webhook(request: Request, token: str):

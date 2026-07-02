@@ -358,6 +358,25 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [ARTUR] **JEDEN ADRES dla porównywarki (pomysł właściciela) — MOSTEK BILETOWY
+  ZBUDOWANY.** Zamiast przerabiać domenę (mapowanie nie przenosi websocketów): porównywarka
+  z ręką robota żyje pod adresem TECHNICZNYM usługi (websockety tam działają — zweryfikowane),
+  a logowanie przenosi mostek: ładna domena `/przeskok-bestchudy` (wymaga sesji Pulpitu) →
+  60-sek. podpisany bilet → adres techniczny `/api/sso/bilet` → lokalna sesja `tsession` (8 h,
+  HttpOnly+Secure) → `/bestchudy`. `read_operator` honoruje `tsession` obok sesji Pulpitu.
+  Aktywacja: env `TECH_URL` przy deployu. Testy 4/4 (bez logowania→Pulpit; bilet→tsession;
+  read_operator z tsession; podrobiony bilet odrzucony).
+  **DELEGACJA SZCZEGÓŁÓW → SYLWIA (decyzja właściciela: „niech ona doprecyzuje, to nie blokada"):**
+  (a) skąd operator wchodzi na przeskok — kafelek Pulpitu wprost na `/przeskok-bestchudy` czy
+  przycisk na Twoim ekranie (Twój wybór, Twój pas);
+  (b) ŹRÓDŁO ramki per adres: na adresie technicznym iframe = `/v11/` (rura, ręka działa),
+  na ładnej domenie zostaje bezpośredni V11_URL — proponuję wybór po hoście w Twoim routerze
+  (Twój plik; mostek niczego tu nie narzuca);
+  (c) „ŁAPKA" parametrów: operator z toolbaru → chudy przez `policz_chudego(operator=, grupa=)`
+  (gotowe), → v11 przez rękę robota (login w ramce); dawne parametry z Wieżowca streamlitowego
+  zastępuje Twój toolbar — rozpisz jak uznasz;
+  (d) kafelek OPERATORZY = Twoje władanie (przekazane wcześniej) — hasła operatorów v11 wpisywane
+  ręcznie przy wyborze (opcja A, głos Sylwii), NIE przechowujemy ich nigdzie.
 - 2026-07-03: [SYLWIA] **INCYDENT NA PRODUKCJI (zgłoszenie operatorki) — 2 sprawy, PILNE:**
   **(1) V11 ZNIKNĘŁO Z RAMKI — moja wina, poprawka w PR `bestchudy/naprawa-ramki`.** Analiza:
   w PR #9 dodałam automat „gdy V11_UPSTREAM ustawione → ramka przez rurę /v11/"; po ustawieniu

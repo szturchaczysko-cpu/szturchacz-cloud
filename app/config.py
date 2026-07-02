@@ -83,6 +83,9 @@ WEM_JWT_PASSWORD = os.environ.get("WEM_JWT_PASSWORD", "")
 # może sięgać do okna v11), a adres kontenera przenosi się do V11_UPSTREAM (cel przelotki).
 V11_URL = os.environ.get("V11_URL", "").strip()
 V11_UPSTREAM = os.environ.get("V11_UPSTREAM", "").strip().rstrip("/")
+# Adres TECHNICZNY tej usługi (run.app) — cel mostka biletowego: tam websockety działają
+# (mapowanie ładnej domeny ich nie przenosi), więc porównywarka z ręką robota żyje tam.
+TECH_URL = os.environ.get("TECH_URL", "").strip().rstrip("/")
 
 # --- AI ------------------------------------------------------------------------
 GCP_PROJECT_IDS = [p.strip() for p in os.environ.get("GCP_PROJECT_IDS", "").split(",") if p.strip()]
