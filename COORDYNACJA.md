@@ -358,6 +358,15 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [ARTUR] **WYDAJNOŚĆ CHUDEGO krok 1 (commit 951da27, plik wspólny ai.py — pas
+  koordynatora, styk respond() BEZ zmian)**: projekt GCP wybierany per ROZMOWA (hash pierwszej
+  wiadomości), nie per wywołanie → identyczny prefiks (prompt ~64k tok. + historia) trafia
+  w implicit cache Vertexa: rabat 90% na wejściu od tury 2 i odczuwalnie szybsze odpowiedzi
+  (adres skargi „chudy długo myśli"). Dodatkowo: projekt/region przypięte pełną nazwą zasobu
+  w żądaniu (koniec wyścigu wątków na globalnym vertexai.init), chłodzenie projektu 60 s po
+  429/503, licznik trafień w logu `[ai] ... cache=N`. Dla bestchudy nic do zrobienia — czysta
+  zmiana wewnątrz silnika. Krok 2 (później, osobna decyzja): migracja na google-genai SDK —
+  Google ogłosił wycofanie gemini-2.5-pro 16.10.2026.
 - 2026-07-03: [ARTUR] **KARTA SPRAWY (etap 3/3) ZBUDOWANA** — nowy kafelek zaplecza: wpisujesz
   nr zamówienia ALBO nazwisko/mail/telefon (kandydaci z bazy franciszkańskiej, widok _mailTel,
   wejście przez whitelistę znaków + escapowanie LIKE; dedup per zam; ŻYWY test: MULTITRANSMISIONES
