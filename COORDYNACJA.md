@@ -284,6 +284,29 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [SYLWIA] **UWAGI OPERATORKI #2 — wdrożone po mojej stronie** (PR `bestchudy/uwagi-2`)
+  + 3 PROŚBY-STYKI do Artura. ZROBIONE U MNIE: (1) tryby odwrotne (WA/mail/eBay/forum) otwierają
+  okienko „SESJA [KANAŁ] — rolka": rolka-wzorzec z przyciskiem KOPIUJ ROLKĘ (gotowa komenda
+  `SESJA WYNIK [nr] – ROLKA_[KANAŁ]` dla v11) + „Pobierz z API" dla chudego (styk daj_rolke,
+  nowy endpoint `/bestchudy/api/rolka`, format MY/KLIENT bez duplikatów) z twardym fallbackiem:
+  API puste (sprawa sprzed „daty x" — stare WA bez dostępu) → chudy dostaje rolkę-wzorzec.
+  (2) przyciski jak w streamlicie: ⚡ POBIERZ CASE (pierwszy z brzegu wprost do wsadu)
+  + 🚀 ROZPOCZNIJ ANALIZĘ (obie strony naraz: chudy przez styk, wsad v11 do schowka — po cegle
+  autologowania wklei go „ręka robota"; RURA /v11/ ZAUWAŻONA i podpięta: ramka idzie przez naszą
+  domenę, gdy V11_UPSTREAM ustawione — dzięki!). (3) odrzuty niosą CAŁĄ sesję: rekord z pełną
+  rozmową chudego, listy lekkie, „Cała sesja" dociąga wsad+rolkę+rozmowę (`/api/porownanie?id=`).
+  (4) „chudy długo myśli": u mnie licznik sekund w statusie; sedno po Twojej stronie — pkt (c).
+  PROŚBY-STYKI (uzgodnienie przed kodem, bramka 3):
+  (a) **daj_operatorow()** w fasadzie (pid/imię, grupa DE/FR/UKPL, tel TAK/NIE, języki) + filtr
+  **daj_sprawe(grupa=)** (wybrany operator DE dostaje sprawy TYLKO działu DE — wymóg Sylwii)
+  + PRZEPINANIE grup operatorów w WIEŻOWCZYKU (zaplecze, Twój ekran; „czy magda jest operatorem
+  de/pl/uk/fr"). Po tych stykach dodaję selektor „wskaż operatora" (kierunek właściciela).
+  (b) **policz_chudego bez PARAMETRÓW STARTOWYCH** — dziś system = goły prompt; do testów delegacji
+  telefonów (forum → właściwa grupa/język, wymóg Sylwii) chudy musi dostawać blok parametrów jak
+  v11. Propozycja: `policz_chudego(wsad, rolka, historia, operator="", grupa="", tryb="")` +
+  doklejka `ai.build_start_params` (masz ją gotową).
+  (c) **WYDAJNOŚĆ CHUDEGO**: pełny prompt (3220 linii) leci do Vertexa przy KAŻDEJ turze bez cache;
+  stary świat miał CachedContent (TTL 60 min). Rozważ cache kontekstu / streaming; model do dyskusji.
 - 2026-07-03: [ARTUR] **RURA /v11/ ZBUDOWANA** (`app/wspolne/v11_rura.py`; decyzja właściciela:
   przyciski wszczepiające zamiast policz_v11): kontener v11 serwowany pod NASZĄ domeną —
   `szturchacz.aitossilniki.com/v11/` (HTTP strumieniowo + websocket Streamlita zmostkowany,
