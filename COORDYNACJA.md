@@ -182,6 +182,29 @@ chudy autonomiczny, ale podgląd + historia per case zostają); v11 na Cloud Run
 +3 wygody na pasie Sylwii). Rura /v11/ AKTYWOWANA na serwerze (V11_UPSTREAM + V11_URL=/v11/) —
 próba techniczna i toolbar = pas Sylwii; styki daj_operatorow/daj_sprawe(grupa=) już na main.
 
+**WYNIK PRÓBY TECHNICZNEJ (Sylwia, 2026-07-03) — RĘKA ROBOTA DZIAŁA; PUSTA RAMKA = WS na PRODZIE
+(pas Artura).** Podpięłam lokalną rurę pod żywy kontener i zbadałam DOM v11 w przeglądarce:
+1. ✅ **HTTP przez rurę OK** — v11 renderuje się w pełni (ekran logowania: selectbox „Operator",
+   pole „Hasło", przycisk „🔓 Zaloguj"); assety `/v11/static/...` = 200 lokalnie i na prodzie.
+2. ✅ **RĘKA ROBOTA — WSZYSTKIE 3 haczyki z komentarza sprawdzone i DZIAŁAJĄ:**
+   (a) hasło: natywny setter `HTMLInputElement.value` + `input`/`change` event → React zauważa
+   (`react_zauwazyl: true`); (b) dropdown operatorów (BaseWeb): otwiera się na PEŁNĄ sekwencję
+   `mousedown+mouseup+click` na kontrolce (sam `click` NIE wystarcza!), lista w portalu na końcu
+   body (`li[role=option]`), wybór Magda utrwalony („Operator: Magda"); (c) lista operatorów
+   z v11 = Sylwia/Emilia/Oliwia/Magda/Ewelina/Iwona/Marlena/EwelinaG/Andrzej/Marta — pokrywa się
+   z magazynem, potwierdza case lowercase. Wsad-odwrotny sprawdzę po zalogowaniu (ten sam wzorzec
+   natywnego settera). WNIOSEK: symulacja wykonalna BEZ zmian w v11 — buduję toolbar+rękę robota.
+3. ⚠️ **PUSTA RAMKA NA PRODZIE — przyczyna INNA niż moja hipoteza baseUrlPath (odwołuję ją).**
+   Assety HTTP wchodzą (200), ale **WEBSOCKET `/v11/_stcore/stream` na PRODZIE NIE ŁĄCZY SIĘ**
+   (`wss://szturchacz.aitossilniki.com/v11/...` = timeout; surowy `wss://...run.app/v11/...` też).
+   Streamlit ładuje skorupę, ale bez kanału na żywo NIE renderuje ciała → pusta ramka. LOKALNIE
+   ten SAM kod rury mostkuje WS w 0.1 s i ekran działa — więc **kod rury jest OK, problem to
+   upgrade WebSocketu na prodzie** (pas Artura): najpewniej domena/LB Cloud Run nie przepuszcza
+   `Upgrade: websocket` na ścieżce `/v11/…`, albo brak session-affinity dla mostka. PROŚBA: sprawdź
+   konfigurację WS na trasie `/v11/` (custom domena → usługa szturchacz) i timeout usługi.
+   Do czasu naprawy WS: ramka na PRODZIE zostaje na BEZPOŚREDNIM `V11_URL` (mój PR #11 to pilnuje —
+   scal go); ręka robota wejdzie, gdy WS przez rurę ruszy (bo autologowanie potrzebuje same-origin).
+
 **WERSJA DLA SYLWII (po ludzku, do pokazania jej w oknie):**
 Na ekranie porównywarki, nad oboma oknami, pojawią się dwa przyciski: „WSKAŻ OPERATORA"
 (wybierasz z listy, np. klaudia) i „POBIERZ KOLEJNY CASE". Po kliknięciu system sam: zaloguje
