@@ -76,14 +76,24 @@ PODZIAŁ (praca równoległa; decyzje koordynatora 2026-07-01):
   TYLKO strona z zielonym; przegrana zawsze na sucho (zapis „co by zrobiła") — chroni przed podwójną
   wiadomością do klienta.
 
-ŁĄCZNIKI (kontrakt skrzynka↔bestchudy — DOPIĄĆ PRZED kodem, dwustronnie):
-1. FEED: bestchudy prosi skrzynkę o „następny case" (wieżowczyk) albo „case po nrZam".
-2. SILNIKI: „policz v11 na case" / „policz chudy na case" → wynik każdej strony (ten sam suchy wsad).
-3. KANAŁ (chudy): chudy żąda sprawdzenia kanału → skrzynka zwraca rolkę (ODCZYT autonomiczny OK,
-   pokazany w oknie); v11 tego nie umie → operator wkleja ręcznie.
-4. WYJŚCIE: każda wysyłka (WA/mail/eBay/forum) → skrzynka wykonuje **TYLKO po kliknięciu operatora
-   „pozwalam wysłać"** (bezpiecznik POZA promptem); v11 → pokazać treść + do kogo przed publikacją, też bezpiecznik.
-5. FORUM: odczyt + memory (ID wpisów), ładowany ZAWSZE gdy sprawa była na forum (jak v11).
+ŁĄCZNIKI — **FASADA GOTOWA (strona skrzynki, 2026-07-02): `app/wspolne/styki.py`** — jedyny punkt,
+z którego bestchudy importuje rzeczy spoza swojego katalogu (poza `sso.read_operator`). Strona
+Sylwii POTWIERDZA sygnatury zanim zacznie na nich budować (kontrakt dwustronny):
+1. FEED: `styki.daj_sprawe(od, do, zam, limit)` → `{ok, sprawy:[{…, suchy_wsad}]}` (wieżowczyk;
+   format `suchy_wsad` = „NrZam: … | kraj | rodzaj | … | tag: …" — do potwierdzenia przez silniki).
+2. SILNIK CHUDEGO: `styki.policz_chudego(suchy_wsad, rolka="", historia=[])` → `{ok, odpowiedz,
+   prompt}` (system = AKTYWNY prompt z panelu — chudy ustawia się tam, nie w kodzie).
+   Silnik v11 = kontener Sylwii (jej strona; skrzynka go nie liczy).
+3. ROLKA: `styki.daj_rolke(zam= | thread_id=)` → `{ok, wiadomosci}` (archiwum WEM; odczyt wolny,
+   pokazywany w oknie silnika; v11 → operator wkleja ręcznie).
+4. WYJŚCIE (ZAWÓR): `styki.wyslij(kanal, adresat, tresc, operator_pid, zgoda, subject="")` —
+   bramki w kodzie: (a) klik operatora ZAWSZE (zgoda+pid), (b) eBay TWARDO zamknięty (osobna
+   decyzja koordynatora), (c) forum osobnym torem (klient forum + FORUM_MODE), (d) tryb env
+   `WEM_WYSYLKA`: off | **sucho (domyślnie — zapis zamiaru do archiwum, NIC nie wychodzi)** | live
+   (realna wysyłka bramą WEM + zapis). KAŻDA próba ląduje w archiwum (kierunek=out, pole `tryb`).
+   Fullautomat = otwarcie zaworu TUTAJ (tryb/wymóg kliku), zero zmian w silnikach/ekranach.
+5. FORUM: odczyt + memory (ID wpisów), ładowany ZAWSZE gdy sprawa była na forum (jak v11) —
+   przez istniejący klient forum (wspolne/forum.py), do opakowania w styk gdy bestchudy sięgnie.
 
 TWARDE ZASADY (bezpieczeństwo — nie negocjowalne):
 - **Każde WYJŚCIE** do klienta/na forum = **bezpiecznik operatora (klik)**, NIEZALEŻNIE od promptu.

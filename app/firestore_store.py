@@ -272,16 +272,17 @@ class FirestoreWaInboxStore:
         return rec
 
     def dodaj_wyslane(self, channel: str, recipient: str, body: str,
-                      msg_id: str = "", sender: str = "") -> dict:
+                      msg_id: str = "", sender: str = "", tryb: str = "live") -> dict:
         """Zapisz wiadomość WYCHODZĄCĄ (kierunek=out) — druga strona dialogu w archiwum.
-        Woła to klient wysyłki przez bramę po udanym /messages/send (następna cegła)."""
+        tryb: 'live' = realnie wysłana przez bramę; 'sucho' = zapisany ZAMIAR (zawór zamknięty)."""
         from .wspolne.archiwum import wzbogac
         from .wspolne.brama_wa import rekord_wyslany
         rec = {
             "id": uuid.uuid4().hex,
             "received_at": _now(),
             **rekord_wyslany(channel, recipient, body, msg_id, sender),
-            "raw": {"_outbound": True, "channel": channel, "recipient": recipient, "body": body},
+            "tryb": tryb,
+            "raw": {"_outbound": True, "tryb": tryb, "channel": channel, "recipient": recipient, "body": body},
             "headers": {},
         }
         rec.update(wzbogac(rec))

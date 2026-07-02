@@ -68,6 +68,15 @@ KURIER_AWIZACJE_MODE = os.environ.get("KURIER_AWIZACJE_MODE", "off").lower()
 # Pusty = endpoint odbioru WYŁĄCZONY (zwraca 503). Ustawiany jako env/Secret na Cloud Run.
 BRAMA_WA_WEBHOOK_TOKEN = os.environ.get("BRAMA_WA_WEBHOOK_TOKEN", "")
 
+# --- Brama WEM: WYSYŁKA (zawór na rurze — bezpiecznik POZA promptem) -------------
+# off   = wysyłka wyłączona całkiem (odmowa)
+# sucho = NIC nie wychodzi do bramy; zamiar zapisywany w archiwum (kierunek=out, tryb=sucho)
+# live  = realna wysyłka przez POST /api/v1/messages/send (nadal WYŁĄCZNIE po kliku operatora)
+WEM_WYSYLKA = os.environ.get("WEM_WYSYLKA", "sucho").lower()
+WEM_URL = os.environ.get("WEM_URL", "https://ata.autossilniki.com")
+WEM_JWT_LOGIN = os.environ.get("WEM_JWT_LOGIN", "")
+WEM_JWT_PASSWORD = os.environ.get("WEM_JWT_PASSWORD", "")
+
 # --- AI ------------------------------------------------------------------------
 GCP_PROJECT_IDS = [p.strip() for p in os.environ.get("GCP_PROJECT_IDS", "").split(",") if p.strip()]
 GCP_LOCATION = os.environ.get("GCP_LOCATION", "europe-west1")
