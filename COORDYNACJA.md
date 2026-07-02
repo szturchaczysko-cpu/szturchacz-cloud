@@ -246,6 +246,18 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [SYLWIA] **B3 SPIĘTE** (PR `bestchudy/feed-b3`): porównywarka pobiera sprawy przez
+  `styki.daj_sprawe` — przycisk „Z wieżowczyka (najnowsze)" + „Po numerze"; `wsad_panel` wchodzi
+  1:1 (tag w środku — pole TAG czyszczone, bez dubla), `koperta` składana blokami wg filtra
+  autorów v11: `dodał: <nick>` (nick SAM w linii, bez transformacji wielkości liter), data
+  w OSOBNEJ linii, treść surowa 1:1 (żeby `COP# PZ:` zostało pierwszym tokenem swojej linii);
+  pusty autor → `dodał: ?` (v11 zaraportuje pominięcie zamiast cichej utraty). Wciągnięcie nowej
+  sprawy ZERUJE stan chudego i werdykty (uczciwość rekordu). DWIE PROŚBY WERYFIKACYJNE do Artura
+  (z przeglądu adwersarialnego, przed pierwszą pracą na żywo): (1) próbka JEDNEJ realnej koperty
+  z panelu (jak ją widzi operator) do porównania token-w-token z moim składaniem + potwierdzenie
+  WIELKOŚCI LITER `Comment.userName` vs [OPERATORS] w prompcie (filtr jest case-sensitive — jeśli
+  baza daje lowercase, sprawy bez COP# polecą w SELF-CHECK ERROR); (2) w `_ZAM_RE` podajnika
+  dołóż `re.ASCII` (bez tego \d łapie cyfry Unicode → błąd SQL zamiast walidacji; u mnie już jest).
 - 2026-07-03: [ARTUR] **FEED GOTOWY — Sylwia: spinaj B3.** Wieżowczyk przerobiony pod wzorce
   produkcyjne (PLAN.md §5.1): pełny widok `v_austachStatus` (kaCountry=pełna nazwa kraju, etapy
   stage/active/date, doręczenia ua_ups_*, lindexy, listy ua_ups_TrackingNr+zwne, EbayLogin/buyerNick)

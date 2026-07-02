@@ -9,6 +9,12 @@
 
 .bc-tryby { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-3); }
 
+.bc-feed { margin-bottom: var(--space-3); }
+.bc-zam { max-width: 140px; }
+#feed-lista { margin-bottom: var(--space-3); }
+#feed-lista[hidden] { display: none; }
+.bc-pozycja-glowa { display: flex; gap: var(--space-2); align-items: center; justify-content: space-between; }
+
 .bc-wsad-siatka { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-3); }
 .bc-pole { display: grid; gap: var(--space-1); font-size: var(--fs-sm, 0.85rem); color: var(--muted); }
 .bc-pole .text-input { width: 100%; box-sizing: border-box; font-family: inherit; }

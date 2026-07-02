@@ -135,6 +135,41 @@ def waliduj_historie(historia) -> str:
     return ""
 
 
+def zloz_koperte(wpisy) -> str:
+    """Koperta z FEED (lista {kto, kiedy, tresc}) → tekst blokowy zgodny z filtrem autorów v11
+    (prompt §0.7.2): „Blok autora" zaczyna się od `dodał: <nick>`, a nick jest porównywany
+    z [OPERATORS] CASE-SENSITIVE i BEZ ozdobników — dlatego nick stoi SAM w swojej linii,
+    a data idzie do linii treści."""
+    if not isinstance(wpisy, list):
+        return ""
+    bloki = []
+    for w in wpisy:
+        if not isinstance(w, dict):
+            continue
+        kto = oczysc(w.get("kto"))
+        tresc = oczysc(w.get("tresc"))
+        if not tresc:
+            continue
+        if not kto:
+            # Pusty autor: „?" nie jest w [OPERATORS], więc v11 JAWNIE zaraportuje pominięcie
+            # („Pominięto komentarze od: ?") zamiast cichej utraty treści.
+            kto = "?"
+        kiedy = oczysc(w.get("kiedy"))
+        # Data w OSOBNEJ linii — treść zostaje surowa 1:1 (doklejka do pierwszej linii psułaby
+        # „poprawny BLOK COP#": linia musi zaczynać się od `COP# PZ:` co do znaku).
+        bloki.append("dodał: " + kto + "\n" + ((kiedy + "\n") if kiedy else "") + tresc)
+    return "\n\n".join(bloki)
+
+
+# Lustro walidacji podajnika; re.ASCII — bez niego \d łapie cyfry Unicode (np. arabskie),
+# które przechodzą do SQL i kończą się mylącym 502.
+_ZAM_FEED = re.compile(r"^\d{4,9}$", re.ASCII)
+
+
+def poprawny_zam(zam) -> bool:
+    return bool(_ZAM_FEED.match(str(zam or "").strip()))
+
+
 def nowa_ocena(d: dict, operator: dict, liczby: dict) -> dict:
     teraz = datetime.now(timezone.utc)
     dzien = d.get("dzien") if poprawny_dzien(d.get("dzien")) else teraz.strftime("%Y-%m-%d")
