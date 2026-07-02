@@ -82,13 +82,13 @@ ai_provider = ai.get_provider()
 
 
 def active_prompt_text() -> str:
-    """Tekst aktywnego promptu: nadpisanie z panelu (URL) albo wbudowany v1_9 (domyślny)."""
+    """Tekst aktywnego promptu: nadpisanie z panelu (URL/nazwa) albo wbudowany v1_11 (domyślny)."""
     return ai.get_prompt((biz_config.get("prompt_url") or "").strip())
 
 
 def active_prompt_label() -> str:
     """Etykieta aktywnego promptu do panelu."""
-    return (biz_config.get("prompt_url") or "").strip() or "v1_9 (wbudowany)"
+    return (biz_config.get("prompt_url") or "").strip() or "v1_11 (wbudowany)"
 
 
 def seed_dev() -> None:

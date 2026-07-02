@@ -22,17 +22,19 @@ from .. import config
 
 log = logging.getLogger("ai")
 
-# Wbudowane prompty (wersjonowane z kodem). v1_9 = kanoniczny pełny; chudy = odchudzony (warstwa AI).
+# Wbudowane prompty (wersjonowane z kodem). v1_11 = kanoniczny pełny (decyzja zespołu 2026-06-30,
+# kopia 1:1 z kontener_v11 — tam źródło); v1_9 = poprzedni; chudy = odchudzony (warstwa AI).
 _PROMPTS_DIR = os.path.join(config.BASE_DIR, "prompts")
 BUNDLED_PROMPTY = {
+    "v1_11": "szturchacz_vnext_v1_11.txt",
     "v1_9": "szturchacz_v1_9.txt",
     "chudy": "szturchacz_chudy.txt",
 }
 _bundled_cache: Dict[str, str] = {}
 
 
-def load_bundled_prompt(name: str = "v1_9") -> str:
-    name = name if name in BUNDLED_PROMPTY else "v1_9"
+def load_bundled_prompt(name: str = "v1_11") -> str:
+    name = name if name in BUNDLED_PROMPTY else "v1_11"
     if name not in _bundled_cache:
         path = os.path.join(_PROMPTS_DIR, BUNDLED_PROMPTY[name])
         try:
@@ -46,8 +48,8 @@ def load_bundled_prompt(name: str = "v1_9") -> str:
 
 def get_prompt(override: str = "") -> str:
     """
-    Domyślnie wbudowany v1_9. Koordynator może wskazać w panelu:
-    nazwę wbudowanego ('v1_9' / 'chudy') albo URL (pobierany, utwardzony cache+fallback).
+    Domyślnie wbudowany v1_11 (decyzja zespołu). Koordynator może wskazać w panelu:
+    nazwę wbudowanego ('v1_11' / 'v1_9' / 'chudy') albo URL (pobierany, utwardzony cache+fallback).
     """
     o = (override or "").strip()
     if o.lower() in BUNDLED_PROMPTY:

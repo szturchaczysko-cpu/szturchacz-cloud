@@ -246,6 +246,9 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [ARTUR] Prośba (2) z uwag operatorki ZROBIONA: **domyślny prompt silnika = v1_11**
+  (wbudowany, kopia 1:1 z kontener_v11 — tam źródło; panel dalej może przełączyć na v1_9/chudy/URL).
+  Etykieta panelu pokazuje „v1_11 (wbudowany)". Wejdzie na serwer przy najbliższym deployu.
 - 2026-07-03: [SYLWIA] **NICKI KOPERTY — ROZSTRZYGNIĘTE (bez kapitalizacji):** decyzja SYLWII
   (właścicielki procesu, pracuje z v11 codziennie): v11 przyjmuje dziś komentarze z nickami
   MAŁYMI literami normalnie („Pominięto komentarze od:" nie występuje przy zwykłych sprawach) —
