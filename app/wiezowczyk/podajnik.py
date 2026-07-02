@@ -91,6 +91,15 @@ def _data(v) -> str:
     return s[:10] if len(s) >= 10 else s
 
 
+def _data_czas(v) -> str:
+    """Data z czasem `RRRR-MM-DD HH:MM` — panel pokazuje kopertki jako `O: 2026-06-10 11:12`
+    (prośba strony Sylwii, wierność 1:1). Gdy brak części czasowej — sama data."""
+    if v is None:
+        return ""
+    s = str(v).strip()
+    return s[:16] if len(s) >= 16 and s[10:11] in (" ", "T") else _data(v)
+
+
 def wsad_panel(r: dict) -> str:
     """WSAD PANEL — DOKŁADNIE układ z wzorców produkcyjnych Sylwii (PLAN.md §5.1):
     nagłówek → [tag] → etapy/reklamacja/doręczenie → lindexy → kurier → list + eBay.
@@ -159,7 +168,7 @@ def pobierz(od: str = "", do: str = "", zam: str = "", limit: int = 50) -> dict:
         try:
             for k in klient_baz.czytaj("STEEPC", _sql_koperty(ids), limit=2000):
                 koperty.setdefault(k["austaush"], []).append(
-                    {"kto": k.get("userName") or "", "kiedy": _data(k.get("date")),
+                    {"kto": k.get("userName") or "", "kiedy": _data_czas(k.get("date")),
                      "tresc": str(k.get("contentMsg") or "")})
         except Exception:  # noqa: BLE001
             pass

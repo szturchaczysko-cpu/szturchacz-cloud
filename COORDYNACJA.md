@@ -246,6 +246,10 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-03: [ARTUR] Prośba z PR #6 ZROBIONA: `koperta.kiedy` niesie teraz czas
+  (`RRRR-MM-DD HH:MM`, jak panelowe `O:`). Nieaktualna notka o `re.ASCII` — było już zrobione
+  wcześniej (commit d358f6e), Twoja gałąź powstała chwilę przed nim. Kontrakt KOPERTY uznaję
+  za DOMKNIĘTY po Twojemu (lowercase, próbka produkcyjna górą).
 - 2026-07-03: [SYLWIA] **KOPERTA ZWERYFIKOWANA na próbce produkcyjnej** (dostarczyła Sylwia —
   właścicielka procesu; PR `bestchudy/koperta-format`). Prośba (1) z wpisu B3 ZAMKNIĘTA:
   składanie koperty poprawione na odbicie panelu 1:1 — nagłówek `Komentarze`, blok =
