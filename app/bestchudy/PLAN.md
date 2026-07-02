@@ -1,198 +1,213 @@
-# BESTCHUDY — rozpoznanie (faza A) + plan kontenera v11
+# BESTCHUDY — rozpoznanie (faza A) + plan kontenera v11 i porównywarki
 
-> Pas Sylwii. Wynik fazy A z COORDYNACJA („rozpoznanie + plan kontenera v11 → dyskusja → dopiero patch").
-> Rozpoznanie zrobione 2026-07-02 workflow'em 7-agentowym (4 czytelników + 3 weryfikatorów adwersarialnych,
-> każde nośne twierdzenie potwierdzone cytatem plik:linia). Referencje czytane READ-ONLY:
+> Pas Sylwii. Wynik fazy A z COORDYNACJA, PRZEROBIONY po decyzjach właściciela z 2026-07-02
+> (kontener AS-IS, split view w ramce, forum v11 naturalne — patrz DECYZJE w COORDYNACJA.md).
+> Rozpoznanie zrobione 2026-07-02 workflow'em 7-agentowym (4 czytelników + 3 weryfikatorów
+> adwersarialnych, każde nośne twierdzenie potwierdzone cytatem plik:linia). Referencje READ-ONLY:
 > `~/szturchacz-test` (żywe pliki: `app_vertex_ew.py`, `forum_module.py`, `szturchacz_vnext_v1_11.txt`),
-> `~/wiezowiec-test` (`app.py`), oraz `main` tego repo (stan po Wieżowczyku v1).
+> `~/wiezowiec-test` (`app.py`), oraz `main` tego repo.
 
-## 1. Co NAPRAWDĘ jest silnikiem v11 (sedno rozpoznania)
+## 1. Co NAPRAWDĘ jest silnikiem v11 (sedno rozpoznania — bez zmian)
 
 **v11 = prompt + cienki klej.** Cała logika biznesowa (kwoty 300/600/900, terminy, kurierzy,
 etapy K1–K5, routing forum, checklisty telefoniczne) żyje W PROMPCIE (3220 linii). Kod silnika to:
 
-- **Pobranie promptu HTTP-em z URL-a** trzymanego w starym Firestore (kaskada: override per operator →
+- **Pobranie promptu HTTP-em z URL-a** trzymanego w Firestore (kaskada: override per operator →
   default admina → fallback; `app_vertex_ew.py:113-156`, `get_remote_prompt` :1393-1401, cache 1 h).
-  Kod NIGDZIE nie ma nazwy pliku promptu. Decyzja zespołu 2026-06-30: obowiązuje **v1_11**
-  (uwaga: nagłówek w pliku mówi „v1.5.3" — zamrożony, realna wersja = nazwa pliku).
-- **Doklejenie 7 parametrów startowych** na końcu promptu (f-string :1521-1530): `domyslny_operator`,
+  Kod NIGDZIE nie ma nazwy pliku promptu — wiązanie przez URL w Firestore (zarządza admin w Wieżowcu).
+  Decyzja zespołu 2026-06-30: obowiązuje **v1_11** (nagłówek w pliku mówi „v1.5.3" — zamrożony,
+  realna wersja = nazwa pliku).
+- **Doklejenie 7 parametrów startowych** na końcu promptu (:1521-1530): `domyslny_operator`,
   `domyslna_data` (DD.MM), `Grupa_Operatorska`, `domyslny_tryb`, `notag`, `analizbior`, `operator_dzwoniacy`.
-- **Wsad = JEDNA wiadomość user** (nie jest sklejany z promptem). Kod wymaga od wsadu tylko NrZam
-  (regex `(\d{5,7})`); cała struktura wsadu to kontrakt z PROMPTEM (WSAD PANEL FORMAT 1/2, koperta COP#,
-  TAG-KOPERTA, `[FORUM_CONTEXT]`, `[TELEFON_WORECZEK]`, komendy `SESJA OK/STOP/WYNIK [NUMER]`).
-- **Wywołanie: Vertex AI (Gemini)**, `temperature=0.0` (jedyny parametr!), bez streamingu, bez natywnego
-  tool-use. Modele: `gemini-2.5-pro` + łańcuch fallback (:1167-1172), retry przy 429/quota/503/unavailable
-  (5 prób/model, backoff 5-10 s). Auth: JSON konta serwisowego (`FIREBASE_CREDS`) + `GCP_LOCATION`
-  + rotacja projektów `GCP_PROJECT_IDS` per operator (rozkładanie quoty).
-- **Wyjście = wolny tekst z markerami** parsowanymi regexami: TAG `C#...` (warunek zamknięcia sprawy),
-  `[FORUM_WRITE|cel=...|user_do=...|tresc=...]` / `[FORUM_READ|...]` (wykonywane przez `forum_module`,
-  marker podmieniany na status), `TEL_DZWON=`/`TEL_WYNIK=`, `PZ=`/`bump=`/`KURIER_PRZEWOZNIK=`/`TOWAR_TYP=`
-  (diamenty). Zero JSON-a — wszystko konwencja tekstowa prompt↔regex.
-- **Pętla agentowa przez `st.rerun()`**: FORUM_READ dokleja treść forum jako nową wiadomość user
-  i przelicza — BEZ limitu iteracji (autopilot w starym Wieżowcu miał limit 3).
-- **forum_module.py** (1304 linie, WSPÓŁDZIELONY ze starym Wieżowcem): klient REST forum F15
-  (`https://f15.pmgtechnik.com`, stały bearer), mapa wątków z zaszytymi post_id, pamięć wpisów per
-  zamówienie w Firestore `forum_memory/{nrzam}`, log diamentów. Streamlit przecieka do niego
-  TRANZYTYWNIE (logger `_flog`, `_get_bearer`→`st.secrets`, cache korzeni, ukryte wejście
-  `st.session_state.chat_nrzam` w `execute_forum_actions` :731!) — do portu trzeba wstrzyknąć:
-  token, logger, nrzam, cache korzeni.
-- **Rdzeń silnika NIE istnieje jako funkcje** — to ~265 linii inline w bloku `else:` renderowania
-  czatu (:1500-1764), przeplecione `st.spinner/toast/markdown/rerun`. Trzeba go WYEKSTRAHOWAĆ,
-  nie „zaimportować".
-- **Stan**: historia czatu tylko w `st.session_state` (restart = utrata rozmowy); trwałe rzeczy
-  w starym Firestore (`ew_cases`, statystyki, woreczek, `forum_memory`, diamenty).
+- **Wsad = JEDNA wiadomość user.** Kod wymaga od wsadu tylko NrZam (regex `(\d{5,7})`); cała struktura
+  wsadu to kontrakt z PROMPTEM (WSAD PANEL FORMAT 1/2, koperta COP#, TAG-KOPERTA, `[FORUM_CONTEXT]`,
+  `[TELEFON_WORECZEK]`, komendy `SESJA OK/STOP/WYNIK [NUMER]`).
+- **Wywołanie: Vertex AI (Gemini)**, `temperature=0.0`, bez streamingu, bez natywnego tool-use;
+  modele `gemini-2.5-pro` + fallback (:1167-1172); retry przy 429/quota/503/unavailable.
+  Auth: JSON konta serwisowego (`FIREBASE_CREDS` w `st.secrets`) + `GCP_LOCATION` + rotacja
+  `GCP_PROJECT_IDS` per operator.
+- **Wyjście = wolny tekst z markerami** parsowanymi regexami: TAG `C#...`, `[FORUM_WRITE|...]` /
+  `[FORUM_READ|...]` (wykonywane przez `forum_module`), `TEL_DZWON=`/`TEL_WYNIK=`, `PZ=`/`bump=` itd.
+- **forum_module.py** (1304 linie): klient REST forum F15, mapa wątków z zaszytymi post_id, pamięć
+  wpisów per zamówienie w Firestore `forum_memory/{nrzam}`, log diamentów.
+- **Stan**: historia czatu w `st.session_state` (ulotna); trwałe w Firestore (`ew_cases`,
+  `operator_configs` z logowaniem, statystyki, woreczek, `forum_memory`, diamenty) — przy
+  `TEST_MODE=True` (:24) wszystkie kolekcje z prefiksem `test_`; UWAGA: `FORUM_TEST_MODE=False`
+  (forum_module.py:807) niezależnie od tego kieruje wpisy na PRODUKCYJNE wątki forum.
 
-## 2. DECYZJA DO DYSKUSJI: kontener „as-is" vs port — rekomendacja: PORT logiki 1:1
+## 2. DECYZJA WŁAŚCICIELA (2026-07-02): kontener v11 = AS-IS — obowiązuje
 
-Rozpis mówi: „jedyny osobny byt: KONTENER v11 (stary silnik streamlitowy 1:1), wołany przez apkę".
-Otwarte pytanie brzmiało: opakować Streamlita w kontener „as-is" czy przenieść logikę.
+Faza A rekomendowała port; **właściciel rozstrzygnął INACZEJ i to zamyka temat**: pliki apki
+streamlitowej + prompt idą do kontenera **W CAŁOŚCI, nietknięte**. Powód właściciela: przepisany
+v11 = ryzyko symulacji zamiast wzorca (dryf). Konsekwencje przyjęte przez pas bestchudy:
 
-**Rekomendacja: mały serwis FastAPI z logiką przeniesioną 1:1 (port), NIE Streamlit w kontenerze.**
+- Zmiany w plikach TYLKO jeśli niezbędne do ODPAŁKI (start/port/sekrety) — zero dotykania logiki.
+- v11 **pisze na forum NATURALNIE** (bez bramek, bez zmian promptu) — to produkcyjny operator
+  wykonujący bieżącą realną pracę. Zawór (`styki.wyslij`) dotyczy WYŁĄCZNIE chudego.
+- Porównywarka NIE woła v11 przez API: v11 żyje w RAMCE (iframe) po lewej stronie ekranu,
+  wsad przenosi operator przyciskiem „KOPIUJ WSAD" (schowek → wklejka do v11).
+- Ustalenia rozpoznania pozostają wartościowe jako mapa terenu (sekrety, kolekcje, pułapki)
+  — wykorzystujemy je do odpałki i do budowy chudego, nie do przepisywania v11.
 
-Uzasadnienie:
-1. **„Wołany przez apkę" wymaga API.** Streamlit nie wystawia API — to UI. Porównywarka nie ma jak
-   „zawołać" Streamlita o policzenie case'a; sterowanie cudzym UI to proteza. (Osadzenie w iframe
-   też odpada: nasz middleware daje `X-Frame-Options: DENY`.)
-2. **Bezpiecznik na wyjściach i tak wymusza zmianę kodu.** Twarda zasada zespołu: każde WYJŚCIE
-   (w tym wpis na forum) za kliknięciem operatora, bezpiecznik POZA promptem. Stary silnik wykonuje
-   `FORUM_WRITE` automatycznie w środku pętli czatu — żeby wstawić bramkę, trzeba zmienić kod.
-   Czyli „as-is" i tak przestaje być as-is; skoro tak — porządny port.
-3. **1:1 dotyczy LOGIKI, a ta żyje w prompcie.** Prompt przenosimy CO DO ZNAKU (plik w repo kontenera).
-   Klej portujemy wiernie: te same parametry startowe, temperatura 0.0, ten sam łańcuch modeli i retry,
-   te same regexy parsujące, ten sam forum_module (z wstrzykniętymi zależnościami zamiast `st.*`).
-4. **„As-is" ciągnie stary świat:** logowanie hasłami plaintext z Firestore, sekrety w `st.secrets`,
-   sidebar, woreczek, licznik diamentów — nic z tego nie jest silnikiem; UI zastępuje porównywarka.
-5. **Ryzyko dryfu jest kontrolowalne:** case'y regresyjne §16 promptu (16.1–16.66) + tryb „sucho"
-   dają gotowy materiał na testy porównawcze port vs oryginał.
+## 3. Kontener v11 AS-IS — plan odpałki
 
-**Świadome odstępstwa od 1:1 (do zatwierdzenia, każde z powodem):**
-- `FORUM_WRITE` NIE wykonuje się automatycznie → wraca jako „propozycja wpisu" i czeka na zielony
-  operatora (twarda zasada zespołu; łącznik 4).
-- Pętla FORUM_READ dostaje limit iteracji (proponuję 3, jak autopilot w starym Wieżowcu :2525) —
-  stary ekran operatora nie miał ŻADNEGO limitu (ryzyko zapętlenia).
-- Historia czatu sesji v11 zapisywana w `bc_v11_sesje` (restart nie gubi rozmowy — stary tracił).
-- Poprawka ukrytego wejścia: `chat_nrzam` jako jawny parametr (w oryginale filtr forum cicho
-  przestaje działać, gdy brak session_state — ryzyko wycieku cudzych zamówień do kontekstu).
-- NIE przenosimy: logowania hasłem (SSO/pulpit załatwia tożsamość), woreczka/diamentozy (zostają
-  w starym świecie do czasu decyzji), rotacji `GCP_PROJECT_IDS` per operator (do decyzji koordynatora
-  — quota; na start jeden projekt).
+**Lokalizacja:** katalog `kontener_v11/` w tym repo (domyślna właściciela — potwierdzam).
+Zawartość: `app_vertex_ew.py` + `forum_module.py` + `szturchacz_vnext_v1_11.txt` skopiowane 1:1
+z `szturchacz-test`, plus WYŁĄCZNIE pliki odpałkowe: `Dockerfile`, `requirements.txt` (kopia),
+skrypt startowy, README odpałki.
 
-**Pułapka z oryginału (uwaga przy testach):** stara apka testowa ma `TEST_MODE=True` (kolekcje `test_*`),
-ale `FORUM_TEST_MODE=False` — czyli „testowa" pisze na PRODUKCYJNE wątki forum. Kontener dostaje
-JEDEN wspólny przełącznik trybu suchego (wzorzec `FORUM_MODE=sucho` z CLAUDE.md) obejmujący też forum.
+**Odpałka (wszystko poza plikami silnika):**
+1. **Start:** `streamlit run app_vertex_ew.py --server.port=$PORT --server.address=0.0.0.0
+   --server.headless=true` — nasłuch na `$PORT` (twardy wymóg Cloud Run), non-root, obraz z UTF-8
+   i locale `pl_PL.UTF-8` (polskie znaki w nazwach wątków forum to ładunek funkcjonalny; kod robi
+   `locale.setlocale` w try/except :31).
+2. **Sekrety:** skrypt startowy generuje `.streamlit/secrets.toml` ze zmiennych środowiskowych
+   (Secret Manager po stronie koordynatora): `FIREBASE_CREDS`, `GCP_PROJECT_IDS`, `GCP_LOCATION`,
+   `FORUM_BEARER_TOKEN`. `st.secrets` czyta plik — zero zmian w kodzie.
+3. **Prompt:** bez zmian w mechanice — apka sama pobiera prompt z URL-a wskazanego w Firestore
+   (dokument `*_admin_config/default_prompt`). To dane konfiguracyjne, nie kod.
+4. **Osadzanie w ramce:** Streamlit wspiera iframe (URL z `?embed=true`); jeśli okażą się potrzebne
+   flagi serwera — to odpałka (parametry startu), nie logika. Po stronie apki-matki CSP `frame-src`
+   dokłada koordynator (jedna linijka, wspólny plik — poza moim pasem).
+5. **Logowanie:** as-is — operator loguje się w ramce po staremu (lista operatorów + hasło
+   z `*_operator_configs`). SSO Pulpitu chroni EKRAN porównywarki; ramka ma swój stary zamek.
 
-## 3. Kształt kontenera v11 (propozycja)
+**Pytania odpałkowe (drobne, do rozstrzygnięcia z koordynatorem przy budowie — nie blokują startu):**
+- **Projekt Firestore kontenera** (`FIREBASE_CREDS`): proponuję STARY projekt (prawdziwe as-is —
+  loginy operatorów, konfiguracja promptu, `forum_memory`, statystyki po prostu DZIAŁAJĄ dalej).
+  Wskazanie nowego projektu = pusta baza = trzeba by ją zasiewać (więcej ruchów, więcej ryzyka).
+- **Flagi `TEST_MODE=True` / `FORUM_TEST_MODE=False` zostają jak są** (as-is; operatorzy dziś tak
+  pracują — kolekcje `test_*`, forum produkcyjne). Zmiana którejkolwiek = decyzja koordynatora.
+- Quota: **bez rotacji** (decyzja właściciela) — `GCP_PROJECT_IDS` dostaje jeden projekt (lista
+  1-elementowa; mechanizm w kodzie nietknięty).
 
-- **Gdzie kod:** propozycja A (preferowana): katalog `kontener_v11/` w TYM repo (osobny Dockerfile,
-  osobny serwis Cloud Run) — jeden PR-flow, wspólna koordynacja. Propozycja B: osobne repo.
-  → decyzja koordynatora.
-- **API (szkic, do domknięcia przy budowie):**
-  - `POST /v11/sesja` — `{wsad, parametry:{operator, data, grupa, tryb, notag, analizbior, operator_dzwoniacy}}`
-    → `{sesja_id, odpowiedz, propozycje_wyjsc:[{typ:"forum_write", cel, user_do, tresc}...], tag?}`
-  - `POST /v11/sesja/{id}/odpowiedz` — `{tresc}` (komendy SESJA... wstrzykiwane przez porównywarkę)
-  - `POST /v11/sesja/{id}/wykonaj-wyjscie` — wykonanie POJEDYNCZEJ propozycji po zielonym operatora
-    (przejściowo, dopóki fizyczna wysyłka nie przejdzie na skrzynkę — patrz styk WYŚLIJ).
-  - `GET /v11/sesja/{id}` — stan (messages, markery, tag) do renderu lewej strony porównywarki.
-- **Prompt:** plik `szturchacz_vnext_v1_11.txt` skopiowany 1:1 do repo kontenera + env `V11_PROMPT_URL`
-  jako override (zachowuje możliwość podmiany bez builda, jak stara kaskada, ale bez zależności
-  od starego Firestore).
-- **Stan:** `bc_v11_sesje` (wzorzec dwuwarstwowy file/Firestore skopiowany z apki, budowany LENIWIE).
-- **Sekrety (prowizjonuje koordynator, ja tylko wymieniam):** dostęp do Vertex (docelowo ADC konta
-  serwisowego Cloud Run zamiast JSON-a w env — jak reszta naszych apek), `GCP_LOCATION`,
-  `FORUM_BEARER_TOKEN`; opcjonalnie `V11_PROMPT_URL`.
-- **Pamięć forum (`forum_memory/{nrzam}`)**: potrzebna do bumpów. W starym świecie żyje w starym
-  Firestore; w naszej apce Artur ma `szt_forum_memory`. Trzy opcje: własna kopia `bc_`, wspólna
-  przez styk, odczyt starej. → pytanie do styku z Arturem (łącznik 5), NIE decyduję sama.
-- **Fazy budowy (B):**
-  1. **B1**: szkielet FastAPI + wyekstrahowana pętla LLM (bez forum) + zaślepka AI lokalnie;
-     testy na case'ach §16 w trybie suchym.
-  2. **B2**: port forum_module z wstrzykniętymi zależnościami; FORUM_READ 1:1 (z limitem),
-     FORUM_WRITE jako propozycja za bramką.
-  3. **B3**: spięcie z porównywarką; porównanie odpowiedzi port vs oryginał na tych samych wsadach.
+## 4. Porównywarka (ekran PRACA) — plan zgodny z rozpisem i doprecyzowaniem właściciela
 
-## 4. Porównywarka (ekran PRACA) — plan zgodny z rozpisem 5 pkt
+Split view w JEDNEJ karcie:
+- **Lewa strona = v11 w ramce** (iframe kontenera, `?embed=true`). Operator pracuje w niej po staremu.
+- **Prawa strona = chudy** przez styki: `daj_sprawe` (wsad sam), `policz_chudego`, `daj_rolke`;
+  wysyłka WYŁĄCZNIE `styki.wyslij` po kliku (zawór, domyślnie sucho).
+- **Przycisk „KOPIUJ WSAD"** przy sprawie: kopiuje do schowka DOKŁADNIE to, co ma dostać v11
+  (wsad_panel + koperta + tag — patrz §5), operator wkleja w ramkę. **Obie strony dostają TEN SAM
+  wsad** (chudemu podajemy ten sam sklejony tekst jako `suchy_wsad` w `policz_chudego`) — inaczej
+  porównanie byłoby nieuczciwe.
+- Selektor u góry (STANDARD / odwrotny WA / mail / eBay / forum), werdykt PER STRONA 🔴/🟢
+  z twardą blokadą 🟢🟢, komentarz przy odrzucie, zakładka ODRZUTÓW, kalendarz per dzień,
+  ocena NA KOŃCU sesji. Werdykty/odrzuty/kalendarz zbiera bestchudy (kolekcje `bc_`).
+- **Kolekcje `bc_`:** `bc_porownania` (case + wynik chudego + werdykty + komentarze; strona v11
+  dokumentowana wklejką/skrótem — v11 as-is nie raportuje do nas), `bc_odrzuty`, `bc_oceny_sesji`.
+- **Technika (potwierdzona weryfikacją):** własny `bc_store.py` (kopia wzorca `_JsonFile` + własny
+  `firestore.Client`, budowa leniwa jak `ai.get_provider()`), własny katalog `templates/`,
+  JS/CSS serwowane trasą routera; motyw przez `/static/theme.css` (uwaga: `.chip--on` jest w
+  `app.css`, `.badge--muted` nie istnieje). KAŻDY endpoint sam woła `sso.read_operator` + kopia
+  `_same_origin` na POST-y. CSP: zero inline JS/CSS. Odpowiedzi `{ok: bool, ...}`. Python 3.9.
 
-Start NA RĘCZNYM WKLEJANIU (bez czekania na styki): operator wkleja wsad (i rolkę), lewa strona = v11
-przez kontener, prawa strona = chudy — do czasu styku „policz-chudego" zaślepka z jasnym komunikatem.
+## 5. STYK FEED — rozstrzygnięty (opcja a); WZORZEC `wsad_panel` DLA ARTURA (co do znaku)
 
-- **Układ:** split-screen v11 ‖ chudy; selektor u góry (STANDARD / odwrotny WA / mail / eBay / forum —
-  mapuje się na `domyslny_tryb` i nagłówki `ROLKA_START_*`); werdykt PER STRONA 🔴/🟢 z twardą blokadą
-  🟢🟢 (operator MUSI wskazać lepszą); komentarz przy odrzucie; zakładka ODRZUTÓW; kalendarz per dzień;
-  ocena NA KOŃCU sesji; przyciski zgody operatora (bezpiecznik WYŚLIJ).
-- **Kolekcje `bc_`:** `bc_v11_sesje` (przebiegi v11), `bc_porownania` (case + wyniki obu stron + werdykty
-  + komentarz), `bc_odrzuty`, `bc_oceny_sesji`. Doc-id deterministyczne (wzorzec `case_doc_id`).
-- **Technika (potwierdzone weryfikacją):** wszystko w `app/bestchudy/` — własny `bc_store.py`
-  (kopia wzorca `_JsonFile` + własny `firestore.Client`, budowa leniwa jak `ai.get_provider()`),
-  własny katalog `templates/` (własna instancja Jinja2Templates; własny base albo lista katalogów
-  z dziedziczeniem `base.html` read-only — do drobnego uzgodnienia), własne JS/CSS serwowane trasą
-  routera (`FileResponse`) — bez dotykania mountu `/static`; motyw przez linki do `/static/theme.css`
-  i klasy bazowe (uwaga z weryfikacji: `.chip--on` jest w `app.css`, nie w motywie; `.badge--muted`
-  nie istnieje). KAŻDY endpoint sam woła `sso.read_operator` (nie ma globalnej bramki; placeholder
-  jest dziś publiczny) + kopia ~8 linii `_same_origin` na POST-y. CSP: zero inline JS/CSS.
-  Odpowiedzi API: `{ok: bool, ...}`. Python 3.9-kompatybilnie.
+Właściciel potwierdził opcję (a): wieżowczyk obok `suchy_wsad` (zostaje — identyfikacja/lista)
+poda **`wsad_panel` = WSAD PANEL FORMAT 2** + **`koperta`** (surowe komentarze z `Comment`).
+Poniżej wzorzec linia-po-linii, o który prosił Artur (źródło: prompt v1_11, L702-767 — FORMAT 2,
+semantyka nagłówka L716, reguły Delivered/DATA_DOSTAWY L740-751):
 
-## 5. STYK FEED (daj-sprawę) — strona Sylwii: NIE potwierdzam formatu 1:1, zgłaszam braki
+```
+<NRZAM> <RRRR-MM-DD> <NICK_SPRZEDAWCY>
+<STATUS_DOSTARCZENIA>
+<INDEX_HANDLOWY>
+<NUMER_LISTU_ZWROTNEGO> <RRRR-MM-DD>
+<DATA_ZWROTU>
+<TYP_KURIERA>
+<NUMER_LISTU_PRZEWOZOWEGO>	<LOGIN_EBAY>	<NICK_EBAY>
+```
 
-Weryfikator porównał pole-po-polu `suchy_wsad` wieżowczyka z tym, czego v11 wymaga we WSADZIE PANEL
-(prompt L702-767). **`suchy_wsad` świetnie identyfikuje sprawę i niesie snapshot (tag = TAG-KOPERTA,
-nadrzędne źródło stanu), ale NIE zastępuje WSADU PANEL.** Braki:
+Reguły co do znaku (tak parsuje v11):
+1. **Nagłówek**: numer zamówienia, potem data ZAMÓWIENIA wzorcem `RRRR-MM-DD` **bezpośrednio po
+   numerze**, potem nick sprzedawcy (forum) — dokładnie ta kolejność (przykład z promptu:
+   `358279 2025-11-13 kasia_k`). Nick = do delegacji TEL i wpisów forum.
+2. **STATUS_DOSTARCZENIA**: słowo `Delivered` (case-insensitive) = paczka PIERWOTNA dostarczona;
+   cokolwiek innego/brak = `Delivered=NIE` → v11 ma blokadę kontaktu. Jeśli znana jest DATA
+   doręczenia: `RRRR-MM-DD` **bezpośrednio przed** słowem Delivered (ta sama linia albo linia nad) —
+   z tego v11 liczy `dni_od_dostawy` (kwoty 5. etapu); bez daty przy potrzebie dopyta operatora.
+3. **INDEX_HANDLOWY**: np. `236222GRUP2,OLEJ_TITAN_75W_36` (SYMBOL = od początku do pierwszego
+   przecinka/spacji — używany w formatkach; nie przycinać).
+4. **Linia listu zwrotnego (OPCJONALNA)**: numer listu + `RRRR-MM-DD` **bezpośrednio ZA numerem**
+   (= data zamówienia kuriera zwrotnego; po TYM v11 poznaje, że to list ZWROTNY, a nie pierwotny).
+5. **DATA_ZWROTU (OPCJONALNA)**: pole informacyjne; NIE jest dowodem doręczenia.
+6. **TYP_KURIERA**: `UPS` / `FEDEX` (kurier pierwotny).
+7. **Ostatnia linia**: list przewozowy PIERWOTNY + login eBay + nick eBay, **separator TAB**
+   (fallback: spacje); UPS poznawany po prefiksie `1Z`. Token1=list, token2=login, reszta=nick.
+8. Parser ignoruje puste linie i `-`; jeśli po INDEX od razu TYP_KURIERA → v11 uznaje brak listu
+   zwrotnego. Pola nieznane → linia z `-` (nie wycinać linii, kolejność jest znacząca).
+9. **`koperta` = OSOBNE pole, surowe 1:1** (niczego nie czyścić!): jeśli zawiera blok `COP#` —
+   v11 bierze OSTATNI blok; jeśli nie — bloki muszą mieć `dodał: <nick>` (autorzy spoza [OPERATORS]
+   = odfiltrowany szum; brak `dodał:` w ogóle = SELF-CHECK ERROR, więc przekazywać jak jest w bazie).
+10. **Tag** (`ContentTag`, jest już w `suchy_wsad`): przy sklejaniu wsadu dla silników dokładamy go
+    jako ostatnią linię — TAG-KOPERTA to nadrzędne źródło snapshotu stanu sprawy.
 
-| Brak | Dlaczego to boli |
-|---|---|
-| STATUS_DOSTARCZENIA / Delivered | **KRYTYCZNE**: bez Delivered v11 ma blokadę kontaktu (L707); `czy_austauch_zakonczony` to co innego |
-| INDEX_HANDLOWY (lindexy) | linia 2 FORMATU 2; decyduje m.in. o kurierze (kolektor vs skrzynia) |
-| NUMER_LISTU_PRZEWOZOWEGO (pierwotny) | wymagany w ostatniej linii FORMATU 2 |
-| TYP_KURIERA (UPS/FEDEX) | `KurFlag` to flaga, nie typ; bez tego v11 dopytuje `KURIER_PIERWOTNY` = stop w automacie |
-| NUMER_LISTU_ZWROTNEGO + data | rozpoznanie zwrotu w drodze |
-| LOGIN_EBAY + NICK_EBAY | twarda zasada: rozpoznanie konta eBay PO WSADZIE (`pmg-service`/`ersi.877`) |
-| nick SPRZEDAWCY (3. element nagłówka) | delegacje na forum (user_do = nick sprzedawcy) |
-| KOPERTA (bloki COP#) | sprawa bez tagu i bez koperty → SESJA BOOTSTRAP = stop bez operatora |
-| układ nagłówka `numer RRRR-MM-DD nick` | v11 czyta datę „bezpośrednio po numerze"; w suchym wsadzie między nimi stoi kraj/rodzaj, data ma prefiks „z dnia" |
-| tel/mail w LINII (są w JSON) | potrzebne do WA / inicjału maila |
+**Sklejka „KOPIUJ WSAD" (robi bestchudy, nie wieżowczyk):** `wsad_panel` + pusta linia + `koperta`
++ pusta linia + linia tagu. To samo idzie do chudego.
 
-**Propozycja kontraktu (do decyzji Artura):**
-- **(a) preferowana:** rozszerzyć SELECT wieżowczyka o pola panelu i dodać drugie pole `wsad_panel`
-  (FORMAT 2 co do znaku) obok `suchy_wsad` (lista/identyfikacja zostaje jak jest); albo
-- **(b)** zapisać jawnie, że FEED podaje TYLKO wskaźnik sprawy + tag, a WSAD PANEL bierzemy z innego
-  źródła (jakiego? — wtedy to trzeba wskazać).
-- Niezależnie: skąd KOPERTA (komentarze COP#)? Bez niej sprawy bez tagu zawsze bootstrapują.
-- Uwaga poboczna: `kakMail`/`ktTelNr`/`klient_nazwa` w JSON endpointu to dane osobowe — jest za bramką
-  koordynatora, odnotować w kontrakcie.
+Notka PII przyjęta przez Artura — do zapisania w kontrakcie (dane osobowe tylko za bramą).
 
-Porównywarka STARTUJE na ręcznym wklejaniu, więc to NIE blokuje fazy B — ale kontrakt FEED trzeba
-domknąć przed spinaniem (faza C).
+## 6. Pozostałe styki — PRZEGLĄD SYGNATUR WYKONANY (strona Sylwii)
 
-## 6. Pozostałe styki (status mojej strony)
+Przejrzałam `app/wspolne/styki.py` z `main` (commit `d2494f2`). Werdykt:
 
-- **policz-chudego:** czekam na kontrakt strony Artura; do tego czasu prawa strona = zaślepka.
-- **daj-rolkę:** technicznie rolka siedzi za `deps.wa_inbox` (import zakazany) — potrzebny styk
-  (endpoint lub uzgodniony odczyt `szt_wa_inbox`); do tego czasu rolki ręcznie.
-- **WYŚLIJ:** propozycja koordynatora (wysyła TYLKO strona z zielonym, przegrana na sucho z zapisem
-  „co by zrobiła") — **strona Sylwii: POPIERAM**, chroni przed podwójną wiadomością. Doprecyzowania
-  wymaga: kto fizycznie wykonuje wpis na FORUM po zielonym dla v11 (przejściowo kontener przez
-  forum_module, docelowo skrzynka?) — patrz §3.
-- **BRAMKA propozycji (strona Sylwii — wypełniam TODO):** do renderu zielony/czerwony + panelu odrzutów
-  potrzebuję pól: `id`, `created_at`, `status`, `test_mode`, `sprawa{nrZam, pz, grupa, kanal_zrodlo}`,
-  `typ`, `akcja{kanal, recipient, tresc | awizacja}`, `kontekst{rolka_skrot, fakty}`, `uzasadnienie` —
-  czyli draft Artura POKRYWA potrzeby; dodałabym tylko `silnik` ("v11"|"chudy") i `porownanie_id?`
-  (spięcie z werdyktami porównywarki). Decyzja/komentarz/decydent/decyzja_at — jak w drafcie.
+- **`daj_sprawe(od, do, zam, limit)`** → `{ok, sprawy:[...]}` — **POTWIERDZAM**. Po rozbudowie
+  (pkt 5) proszę o pola `wsad_panel` (string) i `koperta` (string, surowa) w każdej sprawie;
+  `suchy_wsad` zostaje do listy/identyfikacji.
+- **`daj_rolke(zam= | thread_id=, limit)`** → `{ok, wiadomosci, liczba}` — **POTWIERDZAM**
+  (odczyt wolny, pokazywany w oknie; wystarcza prawej stronie).
+- **`policz_chudego(suchy_wsad, rolka="", historia=[])`** → `{ok, odpowiedz, prompt}` —
+  **POTWIERDZAM**; doprecyzowanie: porównywarka poda w argumencie `suchy_wsad` PEŁNĄ sklejkę
+  z §5 (tę samą, którą operator wkleja do v11) — sygnatura to umożliwia (string), sens porównania
+  tego wymaga.
+- **`wyslij(kanal, adresat, tresc, operator_pid, zgoda, subject)`** — **POTWIERDZAM zawór**:
+  klik zawsze, `WEM_WYSYLKA` off/sucho/live (sucho domyślnie), eBay twardo zamknięty, forum osobnym
+  torem. Zgodnie z decyzją właściciela zawór dotyczy WYŁĄCZNIE chudego (v11 w ramce działa po staremu).
+- **Prośba o PIĄTY styk (pamięć forum)** — patrz §7.
 
-## 7. Główne ryzyka (pełna lista 15 w wynikach rozpoznania)
+## 7. Pamięć forum WSPÓLNA — propozycja wykonania (szczegóły były po stronie Sylwii)
 
-1. Dwie flagi test/prod w dwóch plikach starego świata (test pisze na PROD forum) → jeden przełącznik.
-2. Detekcja tagów wrażliwa na wielkość liter zależnie od modelu (znany przypadek Gemini 2.5).
-3. Pamięć forum: bez niej bumpy zakładają nowe wątki zamiast podbijać (dryf z historią).
-4. Polskie znaki są ładunkiem funkcjonalnym (nazwy grup/wątków forum, `CZATOSZTUR_UK/PL` z ukośnikiem)
-   — kontener musi mieć UTF-8 (+ locale pl_PL), inaczej 400 z API forum.
-5. Rozjazd portu z oryginałem → mitygacja: case'y regresyjne §16 + porównanie na tych samych wsadach.
+Skoro v11 jest nietykalny, **chudy dostosowuje się do v11**: wspólny „notes forum" = kolekcja
+`forum_memory` (przy `TEST_MODE=True`: `test_forum_memory`) w projekcie Firestore KONTENERA
+(dokument per nrZam, mapa `forum_posts.{cel} = {id, data, co, new_subthread}` — kształt zastany).
+Propozycja: nowa funkcja fasady `styki.pamiec_forum(nrzam)` / `styki.zapamietaj_forum(nrzam, cel, wpis)`
+(implementacja u Artura — klient Firestore wskazany env-em na projekt kontenera; zapis „pierwszy
+wygrywa", jak w oryginale `save_forum_memory`). Chudy czyta/pisze WYŁĄCZNIE przez ten styk.
+Do domknięcia przy budowie fazy C — dla fazy B (ręczne wklejanie) niepotrzebne.
 
-## 8. Pytania do dyskusji (właściciel/koordynator) — bramki
+## 8. Bramki — stan po decyzjach właściciela (2026-07-02)
 
-1. **Port vs as-is** (§2) — akceptacja rekomendacji + listy świadomych odstępstw.
-2. **Gdzie kod kontenera** (§3): katalog w tym repo vs osobne repo.
-3. **Styk FEED** (§5): opcja (a) czy (b) + skąd KOPERTA.
-4. **Forum po zielonym** (§6): kto wykonuje wpis (kontener przejściowo vs skrzynka od razu).
-5. **Pamięć forum** (§3): własna `bc_` vs wspólna vs odczyt starej.
-6. **Quota Vertex**: jeden projekt na start czy przenosimy rotację `GCP_PROJECT_IDS`.
-7. **Dostęp do repo:** konto `sylwiaautossilniki` ma dziś TYLKO odczyt (push 403) — regulamin każe
-   „pushować często"; proszę o write na gałęzie albo decyzję „pracujemy przez fork".
+| # | Pytanie z fazy A | Rozstrzygnięcie |
+|---|---|---|
+| 1 | port vs as-is | **AS-IS** (właściciel; obowiązuje) |
+| 2 | gdzie kod kontenera | `kontener_v11/` w tym repo (potwierdzam) |
+| 3 | styk FEED | **opcja (a)**: `wsad_panel` + `koperta` (wzorzec: §5) |
+| 4 | forum po zielonym | **nieaktualne** — v11 naturalnie; zawór tylko chudy |
+| 5 | pamięć forum | **wspólna**; wykonanie: §7 (nowy styk, chudy dostosowany do v11) |
+| 6 | quota Vertex | **bez rotacji** (jeden projekt) |
+| 7 | dostęp push | **załatwione** (konto ma push od 2026-07-02) |
+
+**Otwarte drobiazgi odpałkowe (koordynator, przy budowie):** projekt Firestore kontenera
+(propozycja: stary — §3), flagi TEST_MODE/FORUM_TEST_MODE (propozycja: bez zmian — §3),
+CSP `frame-src` w apce-matce (jedna linijka, strona Artura).
+
+## 9. Główne ryzyka (aktualne po decyzji as-is)
+
+1. **Dwie flagi test/prod w dwóch plikach** (test_* w bazie, forum PRODUKCYJNE) — as-is je zachowuje;
+   każdy, kto testuje kontener, musi wiedzieć, że wpisy forum idą NA ŻYWO.
+2. **Iframe**: do sprawdzenia na początku fazy B, że kontener daje się osadzić (embed=true) i że
+   logowanie w ramce działa; jeśli potrzebne flagi — odpałka.
+3. **Prompt przez URL**: kontener zależy od dostępności URL-a promptu (cache 1 h w apce) — bez zmian
+   względem dzisiejszej pracy operatorów; odnotowane.
+4. **Nierówny wsad = nieuczciwe porównanie** — dlatego twarda zasada §4: obie strony dostają
+   identyczną sklejkę.
+5. Polskie znaki/UTF-8 w kontenerze (nazwy wątków forum) — pilnowane w odpałce (§3 pkt 1).
+
+## 10. Fazy budowy (B) — po tym PR
+
+1. **B1**: katalog `kontener_v11/` (pliki 1:1 + Dockerfile + skrypt sekretów) + lokalny test odpałki
+   (docker run, logowanie, wklejka wsadu, iframe embed) — BEZ deployu (deploy = koordynator).
+2. **B2**: ekran porównywarki w `app/bestchudy/` (split view: ramka + chudy przez styki, KOPIUJ WSAD,
+   werdykty 🔴/🟢 bez 🟢🟢, odrzuty, kalendarz, ocena sesji) na ręcznym wklejaniu.
+3. **B3**: spięcie z rozbudowanym FEED (`wsad_panel`) gdy Artur dowiezie; styk pamięci forum (faza C).

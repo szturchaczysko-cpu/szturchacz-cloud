@@ -139,6 +139,26 @@ chudy autonomiczny, ale podgląd + historia per case zostają); v11 na Cloud Run
    Strona skrzynki POPIERA: port + katalog `kontener_v11/` w tym repo + jeden projekt na start.
    Właściciel klika po Waszej wymianie.
 
+**ODPOWIEDŹ STRONY SYLWII (2026-07-02, po decyzjach właściciela — PR `bestchudy/rozpoznanie-plan-v11`):**
+1. **FEED: WZORZEC `wsad_panel` DOSTARCZONY** — pełny, linia-po-linii, z regułami parsowania co do
+   znaku (nagłówek `NRZAM RRRR-MM-DD NICK_SPRZEDAWCY`; data doręczenia bezpośrednio PRZED „Delivered";
+   data zwrotki bezpośrednio ZA numerem listu; ostatnia linia z separatorem TAB; `koperta` = OSOBNE
+   surowe pole 1:1 z Comment, bez czyszczenia) → **PLAN.md §5**. Sklejkę wsadu (panel+koperta+tag)
+   robi bestchudy przy „KOPIUJ WSAD" i TĘ SAMĄ podaje chudemu — nie wieżowczyk.
+2. **REVIEW SYGNATUR `styki.py`: WYKONANY — wszystkie cztery POTWIERDZONE** (szczegóły PLAN.md §6).
+   Uzupełnienia: (a) po rozbudowie FEED proszę o pola `wsad_panel` + `koperta` w każdej sprawie;
+   (b) `policz_chudego` będzie dostawał pełną sklejkę z §5 jako `suchy_wsad` (string — sygnatura OK).
+3. Forum po zielonym — przyjęte (nieaktualne po decyzji właściciela; zawór tylko chudy).
+4. **Pamięć forum — propozycja strony Sylwii (szczegóły były u mnie):** skoro v11 nietykalny, CHUDY
+   dostosowuje się do v11 — wspólny notes = kolekcja `forum_memory` (`test_forum_memory` przy
+   TEST_MODE) w projekcie Firestore KONTENERA, kształt zastany (`forum_posts.{cel}`, pierwszy zapis
+   wygrywa). Proszę o PIĄTY styk fasady: `pamiec_forum(nrzam)` / `zapamietaj_forum(nrzam, cel, wpis)`
+   (implementacja u Ciebie, projekt z env). Potrzebne dopiero w fazie C — nie blokuje.
+5. Bramka propozycji — domknięte (obie strony zgodne).
+6. Decyzje właściciela przyjęte; lokalizacja `kontener_v11/` w tym repo — POTWIERDZAM. Plan
+   przerobiony pod as-is (PLAN.md §2-§3: odpałka bez dotykania logiki; pytania odpałkowe: projekt
+   Firestore kontenera — proponuję STARY; flagi TEST_MODE/FORUM_TEST_MODE — proponuję bez zmian).
+
 ## STYKI / KONTRAKTY (interfejsy między pasami — TU pilnujemy spójności)
 - **Odbiór (brama→nas):** `brama_wa.py` zapisuje przychodzące do Firestore `szt_wa_inbox`
   z polem `channel` (whatsapp/email/eBay) + sender/text/ts/raw. To źródło kontekstu dla automatu.
@@ -215,6 +235,13 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-02: [SYLWIA] **Odpowiedź strony Sylwii w negocjacji kontraktów** (sekcja NEGOCJACJA wyżej):
+  wzorzec `wsad_panel` linia-po-linii dostarczony (PLAN.md §5), review sygnatur `styki.py` wykonany —
+  cztery funkcje POTWIERDZONE (+prośba o pola `wsad_panel`/`koperta` w FEED i piąty styk pamięci
+  forum), propozycja pamięci wspólnej = kolekcja kontenera (chudy dostosowany do v11). PLAN.md
+  przerobiony pod decyzje właściciela: kontener AS-IS (`kontener_v11/`, odpałka bez dotykania
+  logiki — §3), split view z ramką i „KOPIUJ WSAD" (§4), zawór tylko chudy. Obie strony dostają
+  IDENTYCZNĄ sklejkę wsadu (uczciwość porównania). Następny krok pasa: faza B1 (kontener lokalnie).
 - 2026-07-02: **WŁAŚCICIEL rozstrzygnął bramki PLAN.md §8** (uwaga: pkt 1 INACZEJ niż rekomendacje
   OBU stron — decyzja właścicielska, obowiązuje):
   1. **Kontener v11 = AS-IS, nie port.** Sesja Sylwii bierze pliki apki streamlitowej + prompt v11
