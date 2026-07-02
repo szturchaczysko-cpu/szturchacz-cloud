@@ -41,9 +41,18 @@ PODZIAŁ (praca równoległa; decyzje koordynatora 2026-07-01):
   (STANDARD / odwrotny WA / mail / eBay / forum) + akcept PER STRONA (🔴/🟢, **BRAK 🟢🟢** — operator
   MUSI wskazać lepszą) + komentarz odrzutu + zakładka ODRZUTÓW + kalendarz (per dzień) + **ocena NA
   KOŃCU sesji** + przyciski zgody operatora + **KONTENER v11** (migracja prompt v1_11 + logika 1:1).
-- **BESTCHUDY = WYKONTENEROWANY MODUŁ** (wymóg koordynatora): osobne pliki (np. `app/bestchudy/`),
-  minimalna ingerencja we wspólne/istniejące pliki — prawdziwie odrębny projekt (ale nie za wszelką
-  cenę). Do wspólnych rzeczy wchodzi przez ŁĄCZNIKI (niżej), nie przez edycję cudzych plików.
+- **BESTCHUDY = WYDZIELONY MODUŁ WEWNĄTRZ szturchacz-cloud** (rozpis koordynatora, 2026-07-02 —
+  NIE osobna apka; „chcę poprawić apkę szturchacz i wieżowiec — wprowadzić TAM"):
+  1. Budowane w TEJ apce (szturchacz.aitossilniki.com); żadnej nowej aplikacji.
+  2. Kod Sylwii = osobny katalog `app/bestchudy/` (+ własne szablony) i WŁASNE kolekcje w bazie
+     (prefiks `bc_`). Wspólnych plików NIE edytuje — wpięcie do apki jedną linijką (router).
+  3. Ekran operatora → porównywarka: v11 lewo ‖ chudy prawo, selektor STANDARD/odwrotny
+     WA/mail/eBay/forum, werdykty 🔴/🟢 (brak 🟢🟢) + komentarz, odrzuty+kalendarz, ocena na końcu.
+  4. Cztery styki ze skrzynką (kontrakty TU, przed kodem): daj-sprawę (wieżowczyk) · policz-chudego
+     (silnik Artura) · daj-rolkę (archiwum WEM) · WYŚLIJ (guzik-bezpiecznik u Sylwii, fizyczna
+     wysyłka ZAWSZE po stronie skrzynki — tam siedzą twarde zasady eBay/WA-stary-nowy/skrzynki per kraj).
+  5. Jedyny osobny byt: KONTENER v11 (stary silnik streamlitowy 1:1, pas Sylwii), wołany przez apkę.
+  Start bez czekania na styki: ekran działa najpierw na ręcznie wklejanych sprawach/rolkach.
 - Propozycja koordynatora DO KONTRAKTU bestchudy (strona Sylwii rozstrzyga): realną wysyłkę wykonuje
   TYLKO strona z zielonym; przegrana zawsze na sucho (zapis „co by zrobiła") — chroni przed podwójną
   wiadomością do klienta.
@@ -144,6 +153,9 @@ AUDYT FUNDAMENTU (2026-07-01, workflow 4-agent: Swagger bramy + WA Cloud API + n
   pusha NA PIŚMIE (dziś parser stoi na zgadywanym kontrakcie).
 
 ## DECYZJE (log — dopisuj nowe na górze)
+- 2026-07-02: Rozpis bestchudy = moduł WEWNĄTRZ szturchacz-cloud (5 pkt w sekcji PODZIAŁ wyżej);
+  wcześniejszy pomysł „osobna apka z własnym adresem" WYCOFANY (sprzeczny z „wprowadzić tam").
+  Archiwum WEM: zbudowane, czeka na gałęzi `skrzynka/archiwum-rozmow` — scalenie po starcie Sylwii.
 - 2026-07-01: **Numery WA są RÓŻNE**: STARY = desktop operatorów (chudy bez dostępu), NOWY = brama
   WEM (+49 1579 2556775). Plus tej konfiguracji: nowy numer startuje czysty → sprawy pz0 po „dacie x"
   mają archiwum KOMPLETNE od narodzin (brak-backfillu Meta nie boli).
