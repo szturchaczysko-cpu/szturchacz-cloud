@@ -21,7 +21,10 @@ from typing import List, Optional, Tuple
 # walidację, a wybucha dopiero w SQL. Zgłoszone przez stronę Sylwii (przegląd adwersarialny B3).
 _DATA_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$", re.ASCII)   # YYYY-MM-DD
 _ZAM_RE = re.compile(r"^\d{4,9}$", re.ASCII)               # numer zamówienia = same cyfry
-_LIMIT_MAX = 200
+# Kilkudniowy zakres to realnie ~200 spraw (11-14.05 = 202 na żywej bazie) — sufit musi je
+# pomieścić w całości, żeby panel zgadzał się z oryginalnym szturchaczem co do sztuki.
+_LIMIT_MAX = 500
+_NADMIAR_MAX = 4000  # wierszy z widoku (dubluje per telefon; żywy mnożnik ~2,2 na sprawę)
 
 
 def _waliduj(od: str, do: str, zam: str, limit: int) -> Tuple[str, str, str, int, Optional[str]]:
@@ -45,11 +48,12 @@ _GRUPY_SQL = {
 }
 
 
-def _sql(od: str, do: str, zam: str, limit: int, grupa: str = "") -> str:
+def _sql(od: str, do: str, zam: str, nadmiar: int, grupa: str = "") -> str:
     # Wartości przeszły regex-whitelist (same cyfry/format daty) — wstawienie jest bezpieczne.
     # Widok _mailTel (agent baz 2026-07-03): jak pełny, ALE wiersz-per-TELEFON klienta — panel
     # pokazuje WSZYSTKIE warianty numeru; dedup+zbiórka telefonów niżej w pobierz(). Kolumny: —
     # komplet pod WSAD PANEL wg wzorców produkcyjnych Sylwii (PLAN.md §5.1).
+    # `nadmiar` = limit WIERSZY (nie spraw) — liczony w pobierz(), ten sam trafia do klient_baz.
     warunki = []
     if grupa:
         warunki.append(_GRUPY_SQL[grupa])  # klucz zwalidowany w pobierz() (whitelista)
@@ -60,7 +64,6 @@ def _sql(od: str, do: str, zam: str, limit: int, grupa: str = "") -> str:
     if do:
         warunki.append(f"p.data_zama <= '{do}'")
     where = ("where " + " and ".join(warunki)) if warunki else ""
-    nadmiar = min(limit * 8, 600)  # widok dubluje wiersze per telefon klienta — bierzemy z zapasem
     return f"""
 select top {nadmiar}
        p.zknzamnr, p.data_zama, p.zknusertw, p.klient_nazwa, p.kakMail, p.ktTelNr,
@@ -163,7 +166,7 @@ def suchy_wsad(r: dict) -> str:
     return " | ".join(czesci)
 
 
-def pobierz(od: str = "", do: str = "", zam: str = "", limit: int = 50, grupa: str = "") -> dict:
+def pobierz(od: str = "", do: str = "", zam: str = "", limit: int = _LIMIT_MAX, grupa: str = "") -> dict:
     """Suchy wsad spraw: najnowsze w zakresie dat albo konkretny nrZam (odwrotny zam).
     `grupa` (DE/FR/UKPL) zawęża do działu operatora (prośba-styk Sylwii, PR #9).
     Zwraca {ok, sprawy:[{...pola, suchy_wsad, wsad_panel, koperta}]} albo {ok:False, message}."""
@@ -174,8 +177,12 @@ def pobierz(od: str = "", do: str = "", zam: str = "", limit: int = 50, grupa: s
     if grupa and grupa not in _GRUPY_SQL:
         return {"ok": False, "message": f"Nieznana grupa: {grupa!r} (DE / FR / UKPL)."}
     from ..wspolne import klient_baz
+    # Limit spraw ≠ limit wierszy: widok dubluje wiersze per telefon, więc z bazy bierzemy
+    # ZAPAS wierszy i ten sam zapas dajemy klientowi baz (wcześniej klient ucinał do `limit`
+    # WIERSZY przed sklejeniem — stąd 29 spraw zamiast 202 przy zakresie 11-14.05).
+    nadmiar = min(limit * 8, _NADMIAR_MAX)
     try:
-        wiersze: List[dict] = klient_baz.czytaj("STEEPC", _sql(od, do, zam, limit, grupa), limit=limit)
+        wiersze: List[dict] = klient_baz.czytaj("STEEPC", _sql(od, do, zam, nadmiar, grupa), limit=nadmiar)
     except Exception as e:  # noqa: BLE001 — brak brokera/tunelu nie może wywalać zaplecza
         return {"ok": False, "message": f"Źródło spraw niedostępne ({type(e).__name__}). "
                                         "Sprawdź ONPREM_DB_BROKER_URL (prod) / tunel (dev)."}
@@ -203,7 +210,7 @@ def pobierz(od: str = "", do: str = "", zam: str = "", limit: int = 50, grupa: s
     ids = [r.get("austauch_id") for r in wiersze if r.get("austauch_id")]
     if ids:
         try:
-            for k in klient_baz.czytaj("STEEPC", _sql_koperty(ids), limit=2000):
+            for k in klient_baz.czytaj("STEEPC", _sql_koperty(ids), limit=max(2000, 20 * len(ids))):
                 koperty.setdefault(k["austaush"], []).append(
                     {"kto": k.get("userName") or "", "kiedy": _data_czas(k.get("date")),
                      "tresc": str(k.get("contentMsg") or "")})
@@ -268,6 +275,6 @@ if __name__ == "__main__":
                     "ContentTag": "c#:01.07;pz=pz2"})
     assert w == "NrZam: 382576 | DE | KOLEKTORY | REKLAMACJA | z dnia 2026-07-01 | klient: Firma X | tag: c#:01.07;pz=pz2", w
     assert "tag: —" in suchy_wsad({"zknzamnr": 1, "kraj": "DE", "rodzaj_zama": "SKRZYNIE", "data_zama": "2026-01-01"})
-    assert "select top 400" in _sql("", "", "", 50) and "where" not in _sql("", "", "", 50)  # 50*8 nadmiar pod dedup
-    assert "p.zknzamnr = 382576" in _sql("", "", "382576", 50)
+    assert "select top 400" in _sql("", "", "", 400) and "where" not in _sql("", "", "", 400)  # nadmiar wprost
+    assert "p.zknzamnr = 382576" in _sql("", "", "382576", 400)
     print("podajnik.py: sanity OK")

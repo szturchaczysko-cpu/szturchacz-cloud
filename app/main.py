@@ -386,9 +386,11 @@ async def koord_wiezowczyk(request: Request):
     from .wiezowczyk import podajnik
     q = request.query_params
     try:
-        limit = int(q.get("limit", "50"))
+        # Domyślnie pełny sufit podajnika: zakres dat ma oddawać KOMPLET spraw (parytet
+        # z oryginalnym szturchaczem — 11-14.05 to 202 sprawy), nie próbkę.
+        limit = int(q.get("limit", "500"))
     except ValueError:
-        limit = 50
+        limit = 500
     return await run_in_threadpool(podajnik.pobierz, q.get("od", ""), q.get("do", ""), q.get("zam", ""), limit)
 
 
